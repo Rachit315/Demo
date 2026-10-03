@@ -143,6 +143,27 @@ export const sounds = {
     tone(ac, { from: 880, dur: 0.28, gain: 0.2, type: "triangle" });
     tone(ac, { from: 587.33, at: 0.09, dur: 0.38, gain: 0.22, type: "triangle" });
   },
+  /* a soft keystroke tap; pitch wanders a little so typing never drones */
+  key() {
+    const ac = audio();
+    if (!ac) return;
+    const f = 2100 + Math.random() * 500;
+    tone(ac, { from: f, to: f * 0.7, dur: 0.035, gain: 0.035, attack: 0.002 });
+  },
+  /* prompt sent: a quick upward swish with a low thump underneath */
+  submit() {
+    const ac = audio();
+    if (!ac) return;
+    swish(ac, { from: 600, to: 4200, dur: 0.32, gain: 0.06 });
+    tone(ac, { from: 220, to: 440, dur: 0.18, gain: 0.22 });
+  },
+  /* generation finished: a bright two-note confirmation */
+  done() {
+    const ac = audio();
+    if (!ac) return;
+    tone(ac, { from: 783.99, dur: 0.24, gain: 0.18, type: "triangle" });
+    tone(ac, { from: 1174.66, at: 0.08, dur: 0.36, gain: 0.2, type: "triangle" });
+  },
   /* tiny tick for small toggles */
   tick() {
     const ac = audio();
