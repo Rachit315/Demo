@@ -1,22 +1,39 @@
-import { useEffect, useRef, useState, type DragEvent } from "react";
+import { useEffect, useImperativeHandle, useRef, useState, type DragEvent, type Ref } from "react";
 import {
   AnimatePresence,
   motion,
+  useAnimate,
   useSpring,
   useTransform,
   type MotionValue,
+  type TargetAndTransition,
   type Transition,
 } from "motion/react";
-import { Check, CircleArrowDown, Paperclip } from "lucide-react";
+import { CircleArrowDown, Paperclip } from "lucide-react";
+import { palettes, type Palette, type Theme } from "./dropTheme";
 
-type DropZoneProps = {
-  /* corner — 0 to 40px, radius of the zone */
-  corner?: number;
-  /* how long the fake upload runs before the check lands, in ms */
-  uploadMs?: number;
+export type Phase = "idle" | "over" | "collapse" | "uploading" | "done";
+
+/* lets something other than a native file drag (the demo file) drive the
+   zone with plain pointer coordinates */
+export type DropZoneHandle = {
+  /* pointer moved while carrying a file; returns true when it is over the zone */
+  dragMove(x: number, y: number): boolean;
+  /* pointer released; returns true when the zone took the file */
+  dragEnd(x: number, y: number): boolean;
+  /* where a dropped file should be swallowed, in viewport coordinates */
+  center(): { x: number; y: number } | null;
 };
 
-type Phase = "idle" | "over" | "uploading" | "done";
+type DropZoneProps = {
+  ref?: Ref<DropZoneHandle>;
+  theme?: Theme;
+  /* corner — 0 to 40px, radius of the zone */
+  corner?: number;
+  /* how long the spinner runs before the check lands, in ms */
+  uploadMs?: number;
+  onPhaseChange?: (phase: Phase) => void;
+};
 
 const W = 380;
 const H = 280;
@@ -24,6 +41,8 @@ const RINGS = 8;
 /* the magnet: how far the inner rings may lean towards the pointer */
 const PULL_X = 46;
 const PULL_Y = 34;
+const COLLAPSE_MS = 380;
+const DONE_MS = 1300;
 
 const morph: Transition = { type: "spring", visualDuration: 0.5, bounce: 0.18 };
 const quick: Transition = { duration: 0.2, ease: [0.25, 0.1, 0.25, 1] };
@@ -44,16 +63,16 @@ function idleRect(i: number, radius: number): Rect {
 
 /* over: a tunnel — rings bunch up as they fall towards the centre */
 const depth = [0.14, 0.33, 0.5, 0.63, 0.73, 0.8, 0.85, 0.88];
-function tunnelRect(i: number, radius: number): Rect {
+function tunnelRect(i: number, radius: number, squeeze = 1): Rect {
   const f = depth[i];
-  const w = W * (1 - f);
-  const h = H * (1 - f);
+  const w = W * (1 - f) * squeeze;
+  const h = H * (1 - f) * squeeze;
   return {
     left: (W - w) / 2,
     top: (H - h) / 2,
     width: w,
     height: h,
-    borderRadius: Math.max(6, (radius - 4) * (1 - f) + 4),
+    borderRadius: Math.max(6, (radius - 4) * (1 - f) * squeeze + 4),
   };
 }
 
@@ -73,14 +92,75 @@ function stackRect(i: number): Rect {
   };
 }
 
-export function DropZone({ corner = 28, uploadMs = 1700 }: DropZoneProps) {
-  const [phase, setPhase] = useState<Phase>("idle");
-  const [count, setCount] = useState(0);
-  const depthCounter = useRef(0);
+function cardTarget(phase: Phase, prev: Phase, p: Palette): TargetAndTransition {
+  switch (phase) {
+    case "over":
+      /* paper → grey → ink: the zone dims into a hole as the file arrives */
+      return {
+        scale: 1.07,
+        backgroundColor: prev === "idle" ? [p.card, p.flash, p.flashDeep, p.hole] : p.hole,
+        boxShadow: p.holeShadow,
+        transition: {
+          ...morph,
+          backgroundColor: { duration: 0.45, times: [0, 0.3, 0.62, 1], ease: "easeOut" },
+          boxShadow: { duration: 0.35 },
+        },
+      };
+    case "collapse":
+      /* the hole swallows the file and pulls itself in */
+      return {
+        scale: 0.95,
+        backgroundColor: p.hole,
+        boxShadow: p.holeShadow,
+        transition: { type: "spring", visualDuration: 0.34, bounce: 0 },
+      };
+    case "uploading":
+      /* …then flashes back out to paper */
+      return {
+        scale: 1,
+        backgroundColor: [p.hole, p.flashDeep, p.flash, p.card],
+        boxShadow: p.restShadow,
+        transition: {
+          ...morph,
+          backgroundColor: { duration: 0.6, times: [0, 0.28, 0.58, 1], ease: "easeOut" },
+          boxShadow: { duration: 0.4 },
+        },
+      };
+    default:
+      return {
+        scale: 1,
+        backgroundColor: p.card,
+        boxShadow: p.restShadow,
+        transition: { ...morph, backgroundColor: { duration: 0.32 }, boxShadow: { duration: 0.32 } },
+      };
+  }
+}
+
+export function DropZone({ ref, theme = "light", corner = 28, uploadMs = 2200, onPhaseChange }: DropZoneProps) {
+  const [phase, setPhaseState] = useState<Phase>("idle");
+  /* bumps each time the zone flips between paper and hole, so the rings
+     can blink out while they rearrange */
+  const [flip, setFlip] = useState(0);
+  const phaseRef = useRef<Phase>("idle");
+  const prevRef = useRef<Phase>("idle");
+  const nativeDepth = useRef(0);
   const cardRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
   const timers = useRef<number[]>([]);
   const radius = Math.min(40, Math.max(0, corner));
+  const p = palettes[theme];
+
+  const setPhase = (next: Phase) => {
+    const cur = phaseRef.current;
+    if (cur === next) return;
+    prevRef.current = cur;
+    phaseRef.current = next;
+    if ((cur === "idle" && next === "over") || (cur === "over" && next === "idle")) setFlip((n) => n + 1);
+    setPhaseState(next);
+  };
+
+  useEffect(() => {
+    onPhaseChange?.(phase);
+  }, [phase, onPhaseChange]);
 
   /* pointer position inside the zone, -1..1 on each axis */
   const mx = useSpring(0, { stiffness: 220, damping: 22, mass: 0.6 });
@@ -98,121 +178,122 @@ export function DropZone({ corner = 28, uploadMs = 1700 }: DropZoneProps) {
     };
   }, []);
 
-  const busy = phase === "uploading" || phase === "done";
+  const inside = (x: number, y: number) => {
+    const r = cardRef.current?.getBoundingClientRect();
+    return !!r && x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
+  };
 
-  const hasFiles = (e: DragEvent) => Array.from(e.dataTransfer.types).includes("Files");
-
-  const track = (e: DragEvent) => {
+  const track = (x: number, y: number) => {
     const r = cardRef.current?.getBoundingClientRect();
     if (!r) return;
-    const nx = ((e.clientX - r.left) / r.width) * 2 - 1;
-    const ny = ((e.clientY - r.top) / r.height) * 2 - 1;
-    mx.set(Math.max(-1, Math.min(1, nx)));
-    my.set(Math.max(-1, Math.min(1, ny)));
+    mx.set(Math.max(-1, Math.min(1, ((x - r.left) / r.width) * 2 - 1)));
+    my.set(Math.max(-1, Math.min(1, ((y - r.top) / r.height) * 2 - 1)));
   };
 
   const release = () => {
-    depthCounter.current = 0;
+    nativeDepth.current = 0;
     mx.set(0);
     my.set(0);
   };
 
-  const upload = (files: number) => {
+  const accept = () => {
+    release();
     timers.current.forEach(clearTimeout);
-    setCount(files);
-    setPhase("uploading");
+    setPhase("collapse");
     timers.current = [
-      window.setTimeout(() => setPhase("done"), uploadMs),
-      window.setTimeout(() => setPhase("idle"), uploadMs + 1300),
+      window.setTimeout(() => setPhase("uploading"), COLLAPSE_MS),
+      window.setTimeout(() => setPhase("done"), COLLAPSE_MS + uploadMs),
+      window.setTimeout(() => setPhase("idle"), COLLAPSE_MS + uploadMs + DONE_MS),
     ];
   };
 
+  const open = () => phaseRef.current === "idle" || phaseRef.current === "over";
+
+  useImperativeHandle(ref, () => ({
+    dragMove(x, y) {
+      if (!open()) return false;
+      const hit = inside(x, y);
+      if (hit) {
+        track(x, y);
+        setPhase("over");
+      } else if (phaseRef.current === "over") {
+        release();
+        setPhase("idle");
+      }
+      return hit;
+    },
+    dragEnd(x, y) {
+      if (phaseRef.current !== "over") return false;
+      if (inside(x, y)) {
+        accept();
+        return true;
+      }
+      release();
+      setPhase("idle");
+      return false;
+    },
+    center() {
+      const r = cardRef.current?.getBoundingClientRect();
+      return r ? { x: r.left + r.width / 2, y: r.top + r.height / 2 } : null;
+    },
+  }));
+
+  /* real files dragged in from the desktop */
+  const hasFiles = (e: DragEvent) => Array.from(e.dataTransfer.types).includes("Files");
   const onDragEnter = (e: DragEvent) => {
-    if (busy || !hasFiles(e)) return;
+    if (!open() || !hasFiles(e)) return;
     e.preventDefault();
-    depthCounter.current += 1;
-    track(e);
+    nativeDepth.current += 1;
+    track(e.clientX, e.clientY);
     setPhase("over");
   };
   const onDragOver = (e: DragEvent) => {
-    if (busy || !hasFiles(e)) return;
+    if (!open() || !hasFiles(e)) return;
     e.preventDefault();
     e.dataTransfer.dropEffect = "copy";
-    track(e);
+    track(e.clientX, e.clientY);
   };
   const onDragLeave = () => {
-    if (busy) return;
-    depthCounter.current -= 1;
-    if (depthCounter.current <= 0) {
+    if (phaseRef.current !== "over") return;
+    nativeDepth.current -= 1;
+    if (nativeDepth.current <= 0) {
       release();
       setPhase("idle");
     }
   };
   const onDrop = (e: DragEvent) => {
     e.preventDefault();
-    if (busy) return;
-    release();
-    upload(Math.max(1, e.dataTransfer.files.length));
+    if (phaseRef.current === "over" && e.dataTransfer.files.length > 0) accept();
   };
 
   const over = phase === "over";
+  const hole = over || phase === "collapse";
+  const busy = phase === "uploading" || phase === "done";
 
   return (
     <div className="relative" style={{ width: W, height: H }}>
       <motion.div
         ref={cardRef}
-        role="button"
-        tabIndex={0}
-        aria-label="Upload files: drop them here or press Enter to browse"
+        role="region"
+        aria-label="File drop zone"
         aria-busy={busy}
-        onClick={() => !busy && inputRef.current?.click()}
-        onKeyDown={(e) => {
-          if (!busy && (e.key === "Enter" || e.key === " ")) {
-            e.preventDefault();
-            inputRef.current?.click();
-          }
-        }}
         onDragEnter={onDragEnter}
         onDragOver={onDragOver}
         onDragLeave={onDragLeave}
         onDrop={onDrop}
         initial={false}
-        animate={phase}
-        variants={{
-          idle: {
-            scale: 1,
-            backgroundColor: "#ffffff",
-            boxShadow:
-              "inset 0 0 0 0px #1b1b1d, inset 0 0 0 0px #3a3a3e, 0 22px 44px -18px rgb(0 10 60 / 0.45), 0 2px 6px rgb(0 10 60 / 0.12)",
-          },
-          over: {
-            scale: 1.07,
-            backgroundColor: "#030303",
-            boxShadow:
-              "inset 0 0 0 6px #1b1b1d, inset 0 0 0 7px #3a3a3e, 0 30px 60px -20px rgb(0 0 20 / 0.75), 0 2px 8px rgb(0 0 20 / 0.35)",
-          },
-          /* the hole collapses: a grey flash on the way back to paper */
-          uploading: {
-            scale: [1.07, 0.98, 1],
-            backgroundColor: ["#030303", "#bfbfc2", "#ffffff"],
-            boxShadow:
-              "inset 0 0 0 0px #1b1b1d, inset 0 0 0 0px #3a3a3e, 0 22px 44px -18px rgb(0 10 60 / 0.45), 0 2px 6px rgb(0 10 60 / 0.12)",
-            transition: { duration: 0.55, times: [0, 0.4, 1], ease: "easeOut" },
-          },
-          done: { scale: 1, backgroundColor: "#ffffff" },
-        }}
-        transition={morph}
-        className="relative size-full cursor-pointer overflow-hidden outline-none focus-visible:ring-4 focus-visible:ring-white/60"
+        animate={cardTarget(phase, prevRef.current, p)}
+        className="relative size-full overflow-hidden"
         style={{ borderRadius: radius }}
       >
         {/* debris being pulled into the hole */}
         <AnimatePresence>
-          {over && (
+          {hole && (
             <motion.div
               key="debris"
               className="pointer-events-none absolute inset-0"
               initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
+              animate={{ opacity: 1, transition: { duration: 0.3, delay: 0.2 } }}
               exit={{ opacity: 0, transition: quick }}
             >
               <Debris mx={mx} my={my} />
@@ -223,16 +304,19 @@ export function DropZone({ corner = 28, uploadMs = 1700 }: DropZoneProps) {
         {/* the rings */}
         <div className="pointer-events-none absolute inset-0">
           {Array.from({ length: RINGS }, (_, i) => (
-            <Ring key={i} index={i} phase={phase} radius={radius} mx={mx} my={my} />
+            <Ring key={i} index={i} phase={phase} flip={flip} radius={radius} palette={p} mx={mx} my={my} />
           ))}
         </div>
 
         {/* fade the bottom of the drawer stack into the card */}
         <motion.div
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-white via-white/70 to-transparent"
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-24"
           initial={false}
-          animate={{ opacity: busy ? 1 : 0 }}
-          transition={quick}
+          animate={{
+            opacity: busy ? 1 : 0,
+            backgroundImage: `linear-gradient(to top, ${p.card}, ${p.cardFade}, ${p.cardClear})`,
+          }}
+          transition={{ duration: 0.3, delay: busy ? 0.25 : 0 }}
         />
 
         {/* labels */}
@@ -241,75 +325,71 @@ export function DropZone({ corner = 28, uploadMs = 1700 }: DropZoneProps) {
             {phase === "idle" && (
               <motion.div
                 key="idle"
-                className="flex items-center gap-2 text-[14px] font-medium text-zinc-500"
+                className="flex items-center gap-2 text-[14px] font-medium"
                 initial={{ opacity: 0, scale: 0.92, filter: "blur(4px)" }}
-                animate={{ opacity: 1, scale: 1, filter: "blur(0px)", transition: { ...morph, delay: 0.12 } }}
-                exit={{ opacity: 0, scale: 0.9, filter: "blur(4px)", transition: quick }}
+                animate={{
+                  opacity: 1,
+                  scale: 1,
+                  filter: "blur(0px)",
+                  color: p.text,
+                  transition: { ...morph, delay: prevRef.current === "done" ? 0.3 : 0.12, color: { duration: 0.3 } },
+                }}
+                exit={{ opacity: 0, scale: 0.9, filter: "blur(4px)", transition: { duration: 0.12 } }}
               >
-                <motion.span
-                  animate={{ rotate: [0, -12, 8, 0] }}
-                  transition={{ duration: 1.6, repeat: Infinity, repeatDelay: 2.4, ease: "easeInOut" }}
-                  className="grid"
-                >
-                  <Paperclip className="size-[17px]" strokeWidth={2} />
-                </motion.span>
+                <Paperclip className="size-[17px]" strokeWidth={2} />
                 Drag file here
               </motion.div>
             )}
 
-            {over && <OverLabel key="over" mx={mx} my={my} />}
+            {hole && <HoleLabel key="hole" mx={mx} my={my} sinking={phase === "collapse"} />}
 
             {busy && (
               <motion.div
                 key="busy"
-                className="relative z-10 flex items-center gap-2.5 text-[14px] font-medium text-zinc-500"
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0, transition: { ...morph, delay: 0.18 } }}
-                exit={{ opacity: 0, y: -4, transition: quick }}
+                className="relative z-10 flex items-center gap-2.5 text-[14px] font-medium"
+                initial={{ opacity: 0, filter: "blur(6px)", scale: 0.96 }}
+                animate={{
+                  opacity: 1,
+                  filter: "blur(0px)",
+                  scale: 1,
+                  color: p.text,
+                  transition: { duration: 0.45, delay: 0.3, ease: "easeOut", color: { duration: 0.3 } },
+                }}
+                exit={{ opacity: 0, filter: "blur(4px)", transition: { duration: 0.25 } }}
               >
                 <span className="relative grid size-4 place-items-center">
-                  <AnimatePresence mode="popLayout" initial={false}>
+                  <AnimatePresence initial={false}>
                     {phase === "uploading" ? (
                       <motion.span
                         key="spin"
                         className="absolute inset-0"
-                        exit={{ opacity: 0, scale: 0.4, transition: quick }}
+                        exit={{ scale: 0, opacity: 0, transition: { duration: 0.22, ease: "easeIn" } }}
                       >
                         <Spinner />
                       </motion.span>
                     ) : (
-                      <motion.span
-                        key="check"
-                        className="absolute inset-0 grid place-items-center text-zinc-500"
-                        initial={{ opacity: 0, scale: 0.4 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ type: "spring", visualDuration: 0.35, bounce: 0.45 }}
-                      >
-                        <Check className="size-4" strokeWidth={2.5} />
+                      <motion.span key="check" className="absolute inset-0">
+                        <DrawnCheck />
                       </motion.span>
                     )}
                   </AnimatePresence>
                 </span>
-                <span className="tabular-nums">
-                  {phase === "uploading" ? "Uploading file(s)..." : `${count} file${count === 1 ? "" : "s"} uploaded`}
-                </span>
+                Uploading file(s)...
               </motion.div>
             )}
           </AnimatePresence>
         </div>
       </motion.div>
 
-      <input
-        ref={inputRef}
-        type="file"
-        multiple
-        hidden
-        onChange={(e) => {
-          const n = e.target.files?.length ?? 0;
-          if (n) upload(n);
-          e.target.value = "";
-        }}
-      />
+      <p className="sr-only" aria-live="polite">
+        {phase === "over"
+          ? "Release to upload"
+          : phase === "uploading"
+            ? "Uploading file"
+            : phase === "done"
+              ? "Upload complete"
+              : ""}
+      </p>
     </div>
   );
 }
@@ -317,13 +397,17 @@ export function DropZone({ corner = 28, uploadMs = 1700 }: DropZoneProps) {
 function Ring({
   index,
   phase,
+  flip,
   radius,
+  palette: p,
   mx,
   my,
 }: {
   index: number;
   phase: Phase;
+  flip: number;
   radius: number;
+  palette: Palette;
   mx: MotionValue<number>;
   my: MotionValue<number>;
 }) {
@@ -331,47 +415,58 @@ function Ring({
   const lean = depth[index];
   const x = useTransform(mx, (v) => v * PULL_X * lean);
   const y = useTransform(my, (v) => v * PULL_Y * lean);
+  const [scope, animate] = useAnimate<HTMLDivElement>();
 
-  const stackIndex = RINGS - 1 - index;
-  const isPill = stackIndex === 0;
+  /* blink out while the zone swaps between paper and hole, so the rings
+     rearrange unseen and fade back in already in their new shape */
+  useEffect(() => {
+    if (flip === 0) return;
+    animate(scope.current, { opacity: [1, 0, 0, 1] }, { duration: 0.6, times: [0, 0.15, 0.35, 1], ease: "easeOut" });
+  }, [flip, animate, scope]);
 
-  const rect =
-    phase === "over" ? tunnelRect(index, radius) : phase === "idle" ? idleRect(index, radius) : stackRect(index);
+  const s = RINGS - 1 - index;
+  const isPill = s === 0;
 
-  const look =
-    phase === "over"
-      ? {
-          borderColor: `rgb(255 255 255 / ${Math.max(0.12, 0.85 - index * 0.11)})`,
-          backgroundColor: "rgb(255 255 255 / 0)",
-          opacity: 1,
-        }
-      : phase === "idle"
-        ? {
-            borderColor: index === 0 ? "rgb(150 140 175 / 0.75)" : `rgb(160 160 170 / ${0.6 - index * 0.04})`,
-            backgroundColor: "rgb(255 255 255 / 0)",
-            opacity: 1,
-          }
-        : {
-            borderColor: isPill ? "rgb(120 120 130 / 0.75)" : `rgb(150 150 160 / ${0.55 - stackIndex * 0.05})`,
-            backgroundColor: "rgb(255 255 255 / 1)",
-            opacity: 1,
-          };
+  let rect: Rect;
+  let borderColor: string;
+  let backgroundColor: string;
+  if (phase === "over" || phase === "collapse") {
+    rect = tunnelRect(index, radius, phase === "collapse" ? 0.82 : 1);
+    borderColor = `rgba(255, 255, 255, ${Math.max(0.12, 0.85 - index * 0.11)})`;
+    backgroundColor = "rgba(0, 0, 0, 0)";
+  } else if (phase === "idle") {
+    rect = idleRect(index, radius);
+    borderColor = index === 0 ? p.ringFirst : `rgb(${p.ring} / ${p.ringAlpha - index * p.ringStep})`;
+    backgroundColor = p.cardClear;
+  } else {
+    rect = stackRect(index);
+    borderColor = isPill ? p.pillBorder : `rgb(${p.stack} / ${p.stackAlpha - s * 0.04})`;
+    backgroundColor = isPill ? p.pill : p.card;
+  }
 
-  /* rings travel one after another so the morph reads as a ripple */
-  const order = phase === "over" ? index : stackIndex;
+  /* rings travel one after another so each morph reads as a ripple */
+  const order = phase === "over" || phase === "collapse" ? index : s;
+  const delay =
+    phase === "uploading" ? 0.18 + order * 0.025 : phase === "over" ? 0.1 + order * 0.012 : 0.06 + order * 0.02;
 
   return (
     <motion.div
+      ref={scope}
       className="absolute border border-dashed"
-      style={{ x, y, zIndex: phase === "idle" || phase === "over" ? index : RINGS - stackIndex }}
+      style={{ x, y, zIndex: phase === "uploading" || phase === "done" ? RINGS - s : index }}
       initial={false}
-      animate={{ ...rect, ...look }}
-      transition={{ ...morph, delay: order * 0.018, borderColor: quick, backgroundColor: quick }}
+      animate={{ ...rect, borderColor, backgroundColor }}
+      transition={{
+        ...morph,
+        delay,
+        borderColor: { duration: 0.3, delay: phase === "uploading" ? 0.2 : 0 },
+        backgroundColor: { duration: 0.3, delay: phase === "uploading" ? 0.2 : 0 },
+      }}
     />
   );
 }
 
-function OverLabel({ mx, my }: { mx: MotionValue<number>; my: MotionValue<number> }) {
+function HoleLabel({ mx, my, sinking }: { mx: MotionValue<number>; my: MotionValue<number>; sinking: boolean }) {
   /* the label rides with the deepest ring */
   const x = useTransform(mx, (v) => v * PULL_X * depth[RINGS - 1]);
   const y = useTransform(my, (v) => v * PULL_Y * depth[RINGS - 1]);
@@ -380,8 +475,12 @@ function OverLabel({ mx, my }: { mx: MotionValue<number>; my: MotionValue<number
       <motion.div
         className="flex items-center gap-2.5 text-[17px] font-medium text-white"
         initial={{ opacity: 0, scale: 0.7, filter: "blur(6px)" }}
-        animate={{ opacity: 1, scale: 1, filter: "blur(0px)", transition: { ...morph, delay: 0.08 } }}
-        exit={{ opacity: 0, scale: 0.6, filter: "blur(6px)", transition: quick }}
+        animate={
+          sinking
+            ? { opacity: 0.35, scale: 0.72, filter: "blur(1px)", transition: { duration: 0.3, ease: "easeIn" } }
+            : { opacity: 1, scale: 1, filter: "blur(0px)", transition: { ...morph, delay: 0.18 } }
+        }
+        exit={{ opacity: 0, scale: 0.6, filter: "blur(6px)", transition: { duration: 0.15 } }}
       >
         <motion.span
           className="grid text-white/70"
@@ -416,22 +515,19 @@ function Debris({ mx, my }: { mx: MotionValue<number>; my: MotionValue<number> }
   const y = useTransform(my, (v) => v * PULL_Y * 0.7);
   return (
     <motion.div className="absolute left-1/2 top-1/2" style={{ x, y }}>
-      {debris.map((p, i) => {
-        const rad = (p.a * Math.PI) / 180;
-        const sx = Math.cos(rad) * (W / 2) * p.r;
-        const sy = Math.sin(rad) * (H / 2) * p.r;
+      {debris.map((d, i) => {
+        const rad = (d.a * Math.PI) / 180;
+        const sx = Math.cos(rad) * (W / 2) * d.r;
+        const sy = Math.sin(rad) * (H / 2) * d.r;
         /* a quarter turn of swirl on the way in */
         const mid = rad + Math.PI / 4;
-        const midX = Math.cos(mid) * (W / 4) * p.r;
-        const midY = Math.sin(mid) * (H / 4) * p.r;
+        const midX = Math.cos(mid) * (W / 4) * d.r;
+        const midY = Math.sin(mid) * (H / 4) * d.r;
         return (
           <motion.span
             key={i}
-            className={
-              "absolute block " +
-              (p.kind === "sq" ? "rounded-[5px] bg-zinc-700" : "rounded-full bg-zinc-500/80")
-            }
-            style={{ width: p.s, height: p.s, marginLeft: -p.s / 2, marginTop: -p.s / 2 }}
+            className={"absolute block " + (d.kind === "sq" ? "rounded-[5px] bg-zinc-700" : "rounded-full bg-zinc-500/80")}
+            style={{ width: d.s, height: d.s, marginLeft: -d.s / 2, marginTop: -d.s / 2 }}
             initial={{ x: sx, y: sy, opacity: 0, scale: 1 }}
             animate={{
               x: [sx, midX, 0],
@@ -441,8 +537,8 @@ function Debris({ mx, my }: { mx: MotionValue<number>; my: MotionValue<number> }
               rotate: [0, 120, 300],
             }}
             transition={{
-              duration: p.d,
-              delay: p.delay,
+              duration: d.d,
+              delay: d.delay,
               repeat: Infinity,
               ease: [0.55, 0, 0.85, 0.6],
               times: [0, 0.55, 1],
@@ -465,5 +561,23 @@ function Spinner() {
       <circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" strokeOpacity={0.18} strokeWidth={1.75} />
       <path d="M8 2a6 6 0 0 1 6 6" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" />
     </motion.svg>
+  );
+}
+
+/* the spinner shrinks to a point, then the tick is drawn in */
+function DrawnCheck() {
+  return (
+    <svg viewBox="0 0 16 16" className="size-4" fill="none">
+      <motion.path
+        d="M3.2 8.6l3.1 3 6.5-7.2"
+        stroke="currentColor"
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        initial={{ pathLength: 0, opacity: 0 }}
+        animate={{ pathLength: 1, opacity: 1 }}
+        transition={{ pathLength: { duration: 0.32, delay: 0.18, ease: "easeOut" }, opacity: { duration: 0.01, delay: 0.18 } }}
+      />
+    </svg>
   );
 }

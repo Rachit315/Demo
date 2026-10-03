@@ -95,26 +95,74 @@ body,
 
 body {
   margin: 0;
-  background: #050506;
+  background: var(--dz-page);
   color: var(--text);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   transition: background-color 0.35s ease, color 0.35s ease;
 }
 
-/* Drop-zone page: dark backdrop with soft diagonal light streaks */
-.streaks {
-  background:
-    linear-gradient(118deg, transparent 0 38%, rgb(255 255 255 / 0.10) 44%, transparent 52%),
-    linear-gradient(128deg, transparent 0 58%, rgb(255 255 255 / 0.16) 63%, transparent 70%),
-    linear-gradient(108deg, transparent 0 12%, rgb(255 255 255 / 0.07) 20%, transparent 28%),
-    radial-gradient(120% 80% at 80% 10%, #2a2a2e 0%, #050506 60%);
-  background-color: #050506;
+/* Drop-zone page tokens. The page always carries an explicit data-theme
+   (set by the theme switch), so light lives on :root and dark on the
+   attribute. */
+:root {
+  --dz-page: #e6e8ee;
+  --dz-streak: rgb(255 255 255 / 0.75);
+  --dz-glow: #f7f8fb;
+  --dz-panel-top: #2a72fb;
+  --dz-panel-bottom: #1f68f6;
+  --dz-panel-shadow: 0 40px 80px -36px rgb(10 30 90 / 0.45);
+  --dz-grid: rgb(255 255 255 / 0.05);
+  --dz-title: rgb(255 255 255 / 0.82);
+  --dz-sub: rgb(255 255 255 / 0.32);
+  --dz-hint: rgb(255 255 255 / 0.6);
+  --dz-toggle-bg: rgb(255 255 255 / 0.7);
+  --dz-toggle-line: rgb(0 0 0 / 0.06);
+  --dz-toggle-thumb: #ffffff;
+  --dz-toggle-ink: #18181b;
+  --dz-toggle-muted: #8a8a93;
 }
 
-/* the blue panel with its faint column grid */
+:root[data-theme="dark"] {
+  --dz-page: #050506;
+  --dz-streak: rgb(255 255 255 / 0.13);
+  --dz-glow: #26262b;
+  --dz-panel-top: #121318;
+  --dz-panel-bottom: #0d0e12;
+  --dz-panel-shadow: 0 0 0 1px rgb(255 255 255 / 0.06), 0 40px 80px -30px rgb(0 0 0 / 0.8);
+  --dz-grid: rgb(255 255 255 / 0.035);
+  --dz-title: rgb(244 244 245 / 0.86);
+  --dz-sub: rgb(244 244 245 / 0.3);
+  --dz-hint: rgb(244 244 245 / 0.5);
+  --dz-toggle-bg: rgb(28 29 34 / 0.8);
+  --dz-toggle-line: rgb(255 255 255 / 0.08);
+  --dz-toggle-thumb: #34353c;
+  --dz-toggle-ink: #f4f4f5;
+  --dz-toggle-muted: #7c7c86;
+  color-scheme: dark;
+}
+
+/* backdrop with soft diagonal light streaks */
+.streaks {
+  background:
+    linear-gradient(118deg, transparent 0 38%, color-mix(in srgb, var(--dz-streak) 70%, transparent) 44%, transparent 52%),
+    linear-gradient(128deg, transparent 0 58%, var(--dz-streak) 63%, transparent 70%),
+    linear-gradient(108deg, transparent 0 12%, color-mix(in srgb, var(--dz-streak) 50%, transparent) 20%, transparent 28%),
+    radial-gradient(120% 80% at 80% 10%, var(--dz-glow) 0%, var(--dz-page) 60%);
+  background-color: var(--dz-page);
+}
+
+/* the panel with its faint column grid */
 .panel {
   background:
-    repeating-linear-gradient(90deg, transparent 0 calc(25% - 1px), rgb(255 255 255 / 0.05) calc(25% - 1px) 25%),
-    linear-gradient(180deg, #2a72fb 0%, #1f68f6 100%);
+    repeating-linear-gradient(90deg, transparent 0 calc(25% - 1px), var(--dz-grid) calc(25% - 1px) 25%),
+    linear-gradient(180deg, var(--dz-panel-top) 0%, var(--dz-panel-bottom) 100%);
+  box-shadow: var(--dz-panel-shadow);
+  transition: box-shadow 0.35s ease;
+}
+
+/* while the demo file is being carried, its drag image is the cursor */
+.carrying-file,
+.carrying-file * {
+  cursor: none !important;
 }
