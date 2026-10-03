@@ -95,7 +95,7 @@ body,
 
 body {
   margin: 0;
-  background: var(--page);
+  background: #050506;
   color: var(--text);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
