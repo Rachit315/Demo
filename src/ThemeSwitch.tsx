@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import { Moon, Sun } from "lucide-react";
+import { sounds } from "./sounds";
 
 type Theme = "light" | "dark";
 
@@ -37,7 +38,10 @@ export function ThemeSwitch() {
             role="radio"
             aria-checked={active}
             aria-label={label}
-            onClick={() => setTheme(value)}
+            onClick={() => {
+              if (!active) sounds.tick();
+              setTheme(value);
+            }}
             className={
               "relative grid size-8 cursor-pointer place-items-center rounded-full transition-colors duration-300 focus-visible:outline-2 focus-visible:outline-subtle " +
               (active ? "text-ink" : "text-subtle hover:text-muted")

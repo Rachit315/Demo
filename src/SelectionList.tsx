@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { LayoutGroup, motion, type Transition } from "motion/react";
 import { ChevronDown, X } from "lucide-react";
 import { people, type Person } from "./people";
+import { sounds } from "./sounds";
 
 type SelectionListProps = {
   /* corner — 0 to 40px, radius of the open card */
@@ -37,6 +38,7 @@ export function SelectionList({ corner = 20, rows = "4" }: SelectionListProps) {
   const closeTimer = useRef<number>(undefined);
   const close = (returnFocus: boolean) => {
     if (closeTimer.current) return;
+    sounds.close();
     refocus.current = returnFocus;
     setClosing(true);
     closeTimer.current = window.setTimeout(() => {
@@ -46,6 +48,11 @@ export function SelectionList({ corner = 20, rows = "4" }: SelectionListProps) {
     }, CONTENT_OUT_MS);
   };
   useEffect(() => () => window.clearTimeout(closeTimer.current), []);
+
+  const openCard = () => {
+    sounds.open();
+    setOpen(true);
+  };
 
   /* hand focus back to the pill after a keyboard / close-button dismissal */
   useEffect(() => {
@@ -164,7 +171,11 @@ export function SelectionList({ corner = 20, rows = "4" }: SelectionListProps) {
                 type="button"
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.97 }}
-                onClick={() => setJoined((j) => !j)}
+                onClick={() => {
+                  if (joined) sounds.leave();
+                  else sounds.join();
+                  setJoined(!joined);
+                }}
                 style={{
                   background: "linear-gradient(180deg, var(--btn-top) 0%, var(--btn-bottom) 100%)",
                   color: "var(--btn-text)",
@@ -193,11 +204,11 @@ export function SelectionList({ corner = 20, rows = "4" }: SelectionListProps) {
             tabIndex={0}
             aria-label={`Open voice chat, ${people.length} people`}
             aria-expanded={false}
-            onClick={() => setOpen(true)}
+            onClick={openCard}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") {
                 e.preventDefault();
-                setOpen(true);
+                openCard();
               }
             }}
             className="group relative flex cursor-pointer items-center bg-surface shadow-[var(--card-shadow)] py-1.5 pl-1.5 pr-3.5 outline-none focus-visible:ring-2 focus-visible:ring-subtle"
