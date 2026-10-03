@@ -6,6 +6,8 @@ type GridBackdropProps = {
   energy: MotionValue<number>;
   /* 0–1, eased focus of the prompt bar */
   focus: MotionValue<number>;
+  /* 0–1, where the bar sits vertically, so its light spills from there */
+  anchorY?: number;
 };
 
 /* tile size follows the viewport so the grid reads the same on a phone
@@ -30,7 +32,7 @@ function seeded(i: number) {
   return x - Math.floor(x);
 }
 
-export function GridBackdrop({ energy, focus }: GridBackdropProps) {
+export function GridBackdrop({ energy, focus, anchorY = 0.5 }: GridBackdropProps) {
   const { w, h } = useViewport();
   const reduce = useReducedMotion();
   const tile = tileFor(w);
@@ -101,7 +103,10 @@ export function GridBackdrop({ energy, focus }: GridBackdropProps) {
 
       {/* red light from the prompt bar spilling onto the wall */}
       <motion.div
-        className="absolute left-1/2 top-1/2 h-[70vmin] w-[110vmin] -translate-x-[38%] -translate-y-1/2"
+        className="absolute left-1/2 h-[70vmin] w-[110vmin] -translate-x-[45%] -translate-y-1/2"
+        initial={false}
+        animate={{ top: `${anchorY * 100}%` }}
+        transition={{ type: "spring", visualDuration: 0.6, bounce: 0.1 }}
         style={{
           opacity: spill,
           background:

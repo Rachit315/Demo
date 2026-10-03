@@ -102,60 +102,42 @@ body {
   transition: background-color 0.35s ease, color 0.35s ease;
 }
 
-/* ── prompt bar ─────────────────────────────────────────────────────────── */
+/* ── chat composer ──────────────────────────────────────────────────── */
 
 .prompt-page {
   background: #000;
 }
 
-/* --h drives every proportion of the bar, so it scales as one piece */
-.prompt-bar {
-  --h: clamp(68px, 13vw, 112px);
-  --fs: calc(var(--h) * 0.37);
-  height: var(--h);
+.composer-text {
+  font-size: 16px;
+  line-height: 1.4;
+  letter-spacing: -0.005em;
 }
 
-.prompt-text {
-  font-size: var(--fs);
-  line-height: 1.2;
-  letter-spacing: -0.015em;
-  font-weight: 400;
-}
-
-/* white at the caret, sinking into grey toward the fade, like the reference */
-.prompt-gradient {
+/* typed text: white at the start, cooling to grey toward the fade */
+.composer-gradient {
   display: inline-block;
   min-width: 100%;
-  background: linear-gradient(90deg, #ffffff 0%, #f1e6e6 30%, #a7a7a7 70%, #6e6e6e 100%);
+  background: linear-gradient(90deg, #ffffff 0%, #f3e9e9 45%, #b9b9b9 85%, #8c8c8c 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
-.prompt-gradient-dim {
-  background-image: linear-gradient(90deg, rgb(255 255 255 / 0.82) 0%, rgb(240 226 226 / 0.75) 30%, rgb(167 167 167 / 0.7) 70%, rgb(110 110 110 / 0.6) 100%);
-}
-
-.prompt-input::selection {
+.composer-input::selection {
   background: rgb(255 40 40 / 0.35);
 }
 
-/* the pill: rounded on the left, open and dissolving on the right, with a
-   hairline border that fades out along with it */
-.prompt-surface {
-  border-radius: 9999px 0 0 9999px;
-  background: linear-gradient(90deg, #1f1f21 0%, #151516 30%, rgb(14 14 15 / 0.75) 58%, rgb(10 10 10 / 0) 92%);
-  box-shadow: 0 30px 60px -30px rgb(0 0 0 / 0.9);
+.composer-surface {
+  background: linear-gradient(180deg, rgb(32 32 34 / 0.92) 0%, rgb(22 22 24 / 0.92) 100%);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
 
-.prompt-surface::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  padding: 1px;
-  background: linear-gradient(90deg, rgb(255 255 255 / 0.22) 0%, rgb(255 255 255 / 0.08) 35%, transparent 60%);
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+/* the conversation fades out under the floating top controls */
+.chat-scroll {
+  mask-image: linear-gradient(to bottom, transparent 0, black 72px, black calc(100% - 16px), transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, black 72px, black calc(100% - 16px), transparent 100%);
+  scrollbar-width: thin;
+  scrollbar-color: rgb(255 255 255 / 0.12) transparent;
 }
