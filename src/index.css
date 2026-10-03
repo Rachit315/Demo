@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "@fontsource-variable/inter";
+@import "@fontsource-variable/plus-jakarta-sans";
 
 /* Theme tokens. Light on bare :root, dark via OS preference (unless the page
    is pinned light) or an explicit data-theme="dark" from the switch. */
@@ -72,7 +73,10 @@
 }
 
 @theme inline {
-  --font-sans: "Inter Variable", "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-sans: "Plus Jakarta Sans Variable", "Inter Variable", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --color-hero: #18181a;
+  --color-accent: #8e93f6;
+  --color-accent-hover: #a3a7f8;
   --color-page: var(--page);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
@@ -95,9 +99,22 @@ body,
 
 body {
   margin: 0;
-  background: var(--page);
+  background: #18181a;
   color: var(--text);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   transition: background-color 0.35s ease, color 0.35s ease;
+}
+
+/* the hero's dotted field: one dot every 32px, and a brighter copy that is
+   only revealed in a soft circle around the cursor */
+.dot-field {
+  background-image: radial-gradient(circle at center, #2e2e32 1.6px, transparent 2px);
+  background-size: 32px 32px;
+  background-position: 16px 16px;
+}
+
+.dot-field--lit {
+  background-image: radial-gradient(circle at center, #6c70c9 1.7px, transparent 2.1px);
+  mask-image: radial-gradient(180px circle at var(--mx, -999px) var(--my, -999px), #000 0%, transparent 100%);
 }
