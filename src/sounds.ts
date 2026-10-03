@@ -2,19 +2,10 @@
    glassy tones that match the card: a rising pop to open, a falling pop to
    close, a two-note chime to join a call and its mirror to leave. */
 
-const STORAGE_KEY = "voice-chat:sound";
 let ctx: AudioContext | null = null;
 let master: GainNode | null = null;
-let enabled = readEnabled();
+let enabled = true;
 const listeners = new Set<(on: boolean) => void>();
-
-function readEnabled() {
-  try {
-    return localStorage.getItem(STORAGE_KEY) !== "off";
-  } catch {
-    return true;
-  }
-}
 
 export function isSoundOn() {
   return enabled;
@@ -22,11 +13,6 @@ export function isSoundOn() {
 
 export function setSoundOn(on: boolean) {
   enabled = on;
-  try {
-    localStorage.setItem(STORAGE_KEY, on ? "on" : "off");
-  } catch {
-    /* storage blocked: keep the in-memory setting */
-  }
   listeners.forEach((fn) => fn(on));
 }
 
