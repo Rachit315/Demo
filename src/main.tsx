@@ -2,12 +2,16 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { MotionConfig } from "motion/react";
 import { SelectionList } from "./SelectionList";
+import { ThemeSwitch } from "./ThemeSwitch";
 import "./index.css";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <MotionConfig reducedMotion="user">
-      <main className="grid min-h-full place-items-center p-4">
+      <div className="fixed right-4 top-4 z-50" data-keep-open>
+        <ThemeSwitch />
+      </div>
+      <main className="grid min-h-full place-items-center px-4 py-16">
         <SelectionList corner={20} rows="4" />
       </main>
     </MotionConfig>

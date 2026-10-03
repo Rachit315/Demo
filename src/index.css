@@ -1,8 +1,90 @@
 @import "tailwindcss";
 @import "@fontsource-variable/inter";
 
-@theme {
+/* Theme tokens. Light on bare :root, dark via OS preference (unless the page
+   is pinned light) or an explicit data-theme="dark" from the switch. */
+:root {
+  --page: #f5f5f6;
+  --surface: #ffffff;
+  --surface-2: #f6f6f7;
+  --line: rgb(0 0 0 / 0.06);
+  --text: #18181b;
+  --muted: #6b6b73;
+  --subtle: #a3a3ab;
+  --chip: #ececef;
+  --chip-hover: #e2e2e6;
+  --btn-top: #3a3a3d;
+  --btn-bottom: #0d0d0e;
+  --btn-text: #ffffff;
+  --btn-shadow: rgb(0 0 0 / 0.5);
+  --badge: #18181b;
+  --badge-ink: #ffffff;
+  --ring: rgb(0 0 0 / 0.07);
+  --liquid-shadow: 0 12px 28px -10px rgb(0 0 0 / 0.16), 0 2px 6px -2px rgb(0 0 0 / 0.06),
+    inset 0 0 0 1px rgb(0 0 0 / 0.05);
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --page: #0c0c0d;
+    --surface: #1a1a1d;
+    --surface-2: #202024;
+    --line: rgb(255 255 255 / 0.06);
+    --text: #f4f4f5;
+    --muted: #a1a1aa;
+    --subtle: #6b6b73;
+    --chip: #2a2a2f;
+    --chip-hover: #34343a;
+    --btn-top: #fafafa;
+    --btn-bottom: #d6d6da;
+    --btn-text: #0c0c0d;
+    --btn-shadow: rgb(0 0 0 / 0.7);
+    --badge: #f4f4f5;
+    --badge-ink: #18181b;
+    --ring: rgb(255 255 255 / 0.08);
+    --liquid-shadow: 0 16px 36px -12px rgb(0 0 0 / 0.7), 0 2px 6px -2px rgb(0 0 0 / 0.4),
+      inset 0 0 0 1px rgb(255 255 255 / 0.06);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --page: #0c0c0d;
+  --surface: #1a1a1d;
+  --surface-2: #202024;
+  --line: rgb(255 255 255 / 0.06);
+  --text: #f4f4f5;
+  --muted: #a1a1aa;
+  --subtle: #6b6b73;
+  --chip: #2a2a2f;
+  --chip-hover: #34343a;
+  --btn-top: #fafafa;
+  --btn-bottom: #d6d6da;
+  --btn-text: #0c0c0d;
+  --btn-shadow: rgb(0 0 0 / 0.7);
+  --badge: #f4f4f5;
+  --badge-ink: #18181b;
+  --ring: rgb(255 255 255 / 0.08);
+  --liquid-shadow: 0 16px 36px -12px rgb(0 0 0 / 0.7), 0 2px 6px -2px rgb(0 0 0 / 0.4),
+    inset 0 0 0 1px rgb(255 255 255 / 0.06);
+  color-scheme: dark;
+}
+
+@theme inline {
   --font-sans: "Inter Variable", "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --color-page: var(--page);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-ink: var(--text);
+  --color-muted: var(--muted);
+  --color-subtle: var(--subtle);
+  --color-chip: var(--chip);
+  --color-chip-hover: var(--chip-hover);
+  --color-badge: var(--badge);
+  --color-badge-ink: var(--badge-ink);
+  --color-ring-soft: var(--ring);
 }
 
 html,
@@ -12,5 +94,10 @@ body,
 }
 
 body {
-  @apply bg-[#fbfbfb] font-sans text-neutral-900 antialiased;
+  margin: 0;
+  background: var(--page);
+  color: var(--text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.35s ease, color 0.35s ease;
 }
