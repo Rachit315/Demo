@@ -7,7 +7,7 @@ import "./index.css";
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <MotionConfig reducedMotion="user">
-      <main className="grid min-h-full place-items-center bg-sw-page px-4 py-16">
+      <main className="grid min-h-full grid-cols-[minmax(0,1fr)] place-items-center bg-sw-page px-4 py-16">
         <SwapCard />
       </main>
     </MotionConfig>

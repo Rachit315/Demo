@@ -137,7 +137,7 @@ export function SwapCard() {
   };
 
   return (
-    <motion.div variants={stagger} initial="hidden" animate="shown" className="flex w-[400px] max-w-full flex-col">
+    <motion.div variants={stagger} initial="hidden" animate="shown" className="flex w-full max-w-[400px] flex-col">
       <motion.div variants={rise} className="mb-3 flex justify-center">
         <Tabs mode={mode} onChange={switchMode} />
       </motion.div>
