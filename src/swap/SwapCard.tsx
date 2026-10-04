@@ -297,7 +297,12 @@ export function SwapCard() {
       </motion.div>
 
       <motion.div variants={rise}>
-        <LiquidButton disabled={!ready && status === "idle"} busy={status !== "idle"} onClick={submit}>
+        <LiquidButton
+          disabled={!ready && status === "idle"}
+          busy={status !== "idle"}
+          success={status === "done"}
+          onClick={submit}
+        >
           <span className="relative flex h-5 items-center justify-center overflow-hidden">
             <Swap key={label} distance={14}>
               <span className="inline-flex items-center gap-2">
@@ -317,10 +322,12 @@ function Tabs({ mode, onChange }: { mode: Mode; onChange: (m: Mode) => void }) {
   return (
     <div role="tablist" aria-label="Action" className="flex gap-1">
       {(Object.keys(modes) as Mode[]).map((m) => (
-        <button
+        <motion.button
           key={m}
           type="button"
           role="tab"
+          whileTap={{ scale: 0.94 }}
+          transition={morph}
           aria-selected={m === mode}
           onClick={() => onChange(m)}
           className={
@@ -336,7 +343,7 @@ function Tabs({ mode, onChange }: { mode: Mode; onChange: (m: Mode) => void }) {
             />
           )}
           <span className="relative">{m}</span>
-        </button>
+        </motion.button>
       ))}
     </div>
   );
@@ -344,7 +351,7 @@ function Tabs({ mode, onChange }: { mode: Mode; onChange: (m: Mode) => void }) {
 
 function Panel({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <section className="rounded-[18px] bg-sw-card px-4 pb-3.5 pt-3.5 shadow-[0_1px_2px_rgb(0_0_0/0.03)]">
+    <section className="rounded-[18px] bg-sw-card transition-colors duration-300 px-4 pb-3.5 pt-3.5 shadow-[0_1px_2px_rgb(0_0_0/0.03)]">
       <h2 className="mb-3 text-[13px] font-normal text-sw-muted">{label}</h2>
       {children}
     </section>

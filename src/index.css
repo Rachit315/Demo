@@ -137,3 +137,16 @@ body {
   -webkit-font-smoothing: antialiased;
   transition: background-color 0.35s ease, color 0.35s ease;
 }
+
+/* theme switch: the new theme is revealed as a growing circle (see
+   ThemeToggle); colour transitions pause so the snapshot is the final look */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+.theme-switching,
+.theme-switching * {
+  transition: none !important;
+}
