@@ -4,9 +4,9 @@ import { morph } from "./motion";
 
 /* soft light pools that drift across the button, like light through water */
 const blobs = [
-  { w: 140, h: 70, top: -18, dur: 5.5, delay: 0, color: "rgb(170 225 255 / 0.95)" },
-  { w: 110, h: 60, top: 10, dur: 7, delay: -2.5, color: "rgb(125 205 255 / 0.85)" },
-  { w: 160, h: 80, top: -6, dur: 8.5, delay: -5, color: "rgb(200 238 255 / 0.7)" },
+  { w: 120, h: 60, top: -16, dur: 5.5, delay: 0, color: "rgb(170 225 255 / 0.95)" },
+  { w: 95, h: 50, top: 8, dur: 7, delay: -2.5, color: "rgb(125 205 255 / 0.85)" },
+  { w: 135, h: 68, top: -6, dur: 8.5, delay: -5, color: "rgb(200 238 255 / 0.7)" },
 ];
 
 /* tiny glints that twinkle on the surface */
@@ -38,7 +38,7 @@ export function LiquidButton({
       whileTap={disabled || busy ? undefined : { scale: 0.97 }}
       animate={{ filter: disabled ? "saturate(0.25) brightness(1.08)" : "saturate(1) brightness(1)" }}
       transition={morph}
-      className="relative mt-1 h-14 w-full cursor-pointer overflow-hidden rounded-full text-[18px] font-normal text-white outline-none focus-visible:ring-2 focus-visible:ring-sw-accent focus-visible:ring-offset-2 focus-visible:ring-offset-sw-page disabled:cursor-not-allowed"
+      className="relative mt-0.5 h-[46px] w-full cursor-pointer overflow-hidden rounded-full text-[15px] font-normal text-white outline-none focus-visible:ring-2 focus-visible:ring-sw-accent focus-visible:ring-offset-2 focus-visible:ring-offset-sw-page disabled:cursor-not-allowed"
       style={{
         background: "linear-gradient(180deg, #4d82ff 0%, #2f64f5 100%)",
         boxShadow:
