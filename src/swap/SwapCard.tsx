@@ -396,6 +396,13 @@ function TokenSelect({
 }) {
   const ref = useRef<HTMLDivElement>(null);
 
+  /* open with the current token in view, even when it sits below the fold */
+  const centreCurrent = (list: HTMLUListElement | null) => {
+    /* measure the <li>: its offset is relative to the list, the button's isn't mid-animation */
+    const current = list?.querySelector<HTMLElement>('[aria-selected="true"]')?.closest("li");
+    if (list && current) list.scrollTop = current.offsetTop - (list.clientHeight - current.offsetHeight) / 2;
+  };
+
   /* Escape or a click anywhere else closes the list */
   useEffect(() => {
     if (!open) return;
@@ -435,13 +442,14 @@ function TokenSelect({
       <AnimatePresence>
         {open && (
           <motion.ul
+            ref={centreCurrent}
             role="listbox"
             aria-label="Select token"
             initial={{ opacity: 0, scale: 0.9, y: -6, filter: "blur(4px)" }}
             animate={{ opacity: 1, scale: 1, y: 0, filter: "blur(0px)", transition: { ...morph, opacity: fade() } }}
             exit={{ opacity: 0, scale: 0.94, y: -4, filter: "blur(4px)", transition: { duration: 0.14 } }}
             style={{ originX: 1, originY: 0 }}
-            className="absolute right-0 top-[38px] z-50 w-56 rounded-2xl bg-sw-card p-1.5 shadow-[0_0_0_1px_rgb(0_0_0/0.05),0_16px_32px_-12px_rgb(0_0_0/0.25)]"
+            className="token-scroll absolute right-0 top-[38px] z-50 max-h-[196px] w-56 overflow-y-auto overscroll-contain rounded-2xl bg-sw-card p-1.5 shadow-[0_0_0_1px_rgb(0_0_0/0.05),0_16px_32px_-12px_rgb(0_0_0/0.25)]"
           >
             {tokens.map((t, i) => (
               <motion.li

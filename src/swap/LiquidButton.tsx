@@ -33,10 +33,11 @@ const burst = Array.from({ length: 14 }, (_, i) => {
 
 type Ripple = { id: number; x: number; y: number };
 
+/* kept light: a thin inner highlight and a short, soft drop */
 const restShadow =
-  "inset 0 1px 0 rgb(255 255 255 / 0.35), inset 0 -2px 6px rgb(10 40 160 / 0.35), 0 10px 22px -12px rgb(47 100 245 / 0.8)";
+  "inset 0 1px 0 rgb(255 255 255 / 0.3), inset 0 -1px 2px rgb(10 40 160 / 0.2), 0 3px 8px -4px rgb(47 100 245 / 0.35)";
 const hoverShadow =
-  "inset 0 1px 0 rgb(255 255 255 / 0.4), inset 0 -2px 6px rgb(10 40 160 / 0.35), 0 14px 28px -12px rgb(47 100 245 / 0.95)";
+  "inset 0 1px 0 rgb(255 255 255 / 0.36), inset 0 -1px 2px rgb(10 40 160 / 0.2), 0 4px 12px -5px rgb(47 100 245 / 0.45)";
 
 export function LiquidButton({
   children,
@@ -89,13 +90,6 @@ export function LiquidButton({
       if (!reduce) animate(scope.current, { x: [0, -7, 7, -5, 5, -2, 0] }, { duration: 0.42, ease: "easeOut" });
       return;
     }
-    /* jelly squash on release, then the action */
-    if (!reduce)
-      animate(
-        scope.current,
-        { scaleX: [1, 1.035, 0.99, 1], scaleY: [1, 0.9, 1.03, 1] },
-        { duration: 0.5, ease: "easeOut" },
-      );
     onClick();
   };
 
@@ -140,8 +134,6 @@ export function LiquidButton({
         onHoverEnd={() => setHover(false)}
         aria-disabled={disabled || busy}
         aria-busy={busy}
-        whileHover={interactive ? { scale: 1.015, y: -1 } : undefined}
-        whileTap={interactive ? { scale: 0.965, y: 1 } : undefined}
         animate={{
           filter: disabled ? "saturate(0.25) brightness(1.08)" : "saturate(1) brightness(1)",
           boxShadow: hover && interactive ? hoverShadow : restShadow,

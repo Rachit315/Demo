@@ -150,3 +150,16 @@ body {
 .theme-switching * {
   transition: none !important;
 }
+
+/* token list: slim scrollbar that matches the card */
+.token-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--sw-chip-hover) transparent;
+}
+.token-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.token-scroll::-webkit-scrollbar-thumb {
+  background: var(--sw-chip-hover);
+  border-radius: 999px;
+}
