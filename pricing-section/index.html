@@ -9,15 +9,14 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..600&family=Inter:wght@400;500;600&family=Urbanist:wght@500&display=swap">
 <style>
-  /* Layout: one-screen pricing. Centred header + billing switch, then three lime plan cards
-     (3 columns on desktop, a snap carousel on tablet and phone). */
+  /* Layout: Figma's 1440 pricing frame (55px top, 60px rhythm, 380x550 cards, 24px gap).
+     Three columns from 1024px; a single centred column of cards below that. */
   :root {
     --paper: #ffffff;
     --ink: #000000;
     --ink-80: rgba(0, 0, 0, 0.8);
-    --ink-50: rgba(0, 0, 0, 0.5);
+    --ink-60: rgba(0, 0, 0, 0.6);
     --lime: #dcf75e;
-    --lime-soft: #eafb9c;
     --forest: #325832;
     --forest-hover: #3d6b3d;
     --forest-ink: #102d16;
@@ -29,6 +28,11 @@
     --ease: cubic-bezier(0.22, 1, 0.36, 1);
     color-scheme: light;
   }
+
+  /* Lenis smooth scroll */
+  html.lenis, html.lenis body { height: auto; }
+  .lenis:not(.lenis-autoToggle).lenis-stopped { overflow: clip; }
+  .lenis.lenis-smooth iframe { pointer-events: none; }
 
   *, *::before, *::after { box-sizing: border-box; }
   html, body { margin: 0; }
@@ -42,55 +46,53 @@
   button { font: inherit; color: inherit; }
   :focus-visible { outline: 2px solid var(--forest); outline-offset: 3px; }
 
-  /* ---------- Section: one screen ---------- */
+  /* ---------- Section ---------- */
   .pricing {
-    min-height: 100vh;
-    min-height: calc(100svh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
-    padding-block: clamp(20px, 4.5svh, 56px);
+    padding-block: clamp(40px, 3.8vw, 55px) clamp(56px, 6vw, 88px);
     padding-inline: var(--gutter);
   }
 
   /* ---------- Header ---------- */
   .eyebrow {
     display: inline-flex; align-items: center; gap: 8px;
+    padding: 3px 24px;
     font-family: var(--font-label);
     font-weight: 500; font-size: 14px; line-height: 30px; letter-spacing: 0.02em;
   }
   .eyebrow i { width: 6px; height: 6px; border-radius: 50%; background: var(--dot); }
   h2 {
-    margin: clamp(8px, 1.6svh, 18px) 0 0;
-    max-width: 26ch;
+    margin: 24px 0 0;
+    max-width: 885px;
     text-align: center;
     font-family: var(--font-display);
     font-variation-settings: "opsz" 14;
     font-weight: 500;
-    font-size: clamp(2.1rem, min(4.3vw, 6.6svh), 3.75rem);
-    line-height: 1.02;
+    font-size: clamp(2.6rem, 4.2vw, 3.75rem);
+    line-height: 1;
     letter-spacing: -0.02em;
     text-wrap: balance;
   }
   h2 .w { display: inline-block; }
-  @media (max-width: 639px) { .br-lg { display: none; } h2 { font-size: clamp(1.75rem, 7.8vw, 2.1rem); } }
+  @media (max-width: 639px) { .br-lg { display: none; } }
 
   /* ---------- Billing switch ---------- */
   .billing {
-    margin-top: clamp(18px, 4svh, 48px);
-    display: flex; align-items: center; gap: 14px;
+    margin-top: clamp(36px, 4.2vw, 60px);
+    display: flex; align-items: center; gap: 8px;
   }
   .billing-label {
     position: relative;
-    border: 0; background: none; padding: 4px 2px; cursor: pointer;
+    border: 0; background: none; padding: 4px 0; cursor: pointer;
     font-weight: 500; font-size: 18px; letter-spacing: -0.02em;
-    color: var(--ink-50);
+    color: var(--ink-60);
     transition: color .25s ease;
   }
   .billing-label[aria-pressed="true"] { color: var(--ink); }
   .save {
-    position: absolute; left: calc(100% - 10px); top: -14px;
+    position: absolute; left: calc(100% - 12px); top: -12px;
     padding: 3px 7px; border-radius: 10px;
     background: var(--lime); color: var(--forest-ink);
     font-weight: 600; font-size: 10px; letter-spacing: 0; white-space: nowrap;
@@ -100,145 +102,138 @@
     width: 64px; height: 32px; padding: 0;
     border: 0; border-radius: 40px; cursor: pointer;
     background: var(--lime);
-    box-shadow: inset 0 0 0 1px rgba(16, 45, 22, 0.08);
   }
   .knob {
     position: absolute; top: 4px; left: 4px;
     width: 24px; height: 24px; border-radius: 50%;
     background: var(--forest);
     box-shadow: 0 2px 6px rgba(16, 45, 22, 0.35);
+    transition: left .45s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
   .switch[aria-checked="true"] .knob { left: 36px; }
   .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
   /* ---------- Plans ---------- */
-  .plans-wrap { width: 100%; max-width: 1188px; margin-top: clamp(26px, 5svh, 60px); }
   .plans {
+    width: 100%;
+    max-width: 1188px;
+    margin-top: clamp(40px, 4.2vw, 60px);
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: clamp(16px, 1.8vw, 24px);
-    padding-top: 20px; /* room for the "Most Popular" badge */
+    grid-template-columns: repeat(3, minmax(0, 380px));
+    justify-content: center;
+    gap: 24px;
   }
   .plan {
     position: relative;
     container-type: inline-size;
     display: flex;
     flex-direction: column;
-    padding: clamp(26px, 4svh, 74px) clamp(20px, 7cqw, 26px) clamp(16px, 2.4svh, 24px);
+    min-height: 550px;
+    padding: 74px 27px 24px 26px;
     background: var(--lime);
     border-radius: 16px;
-    transition: transform .4s var(--ease), box-shadow .4s var(--ease);
+    transition: transform .45s var(--ease), box-shadow .45s var(--ease);
   }
-  .plan:hover { transform: translateY(-4px); box-shadow: 0 18px 40px -22px rgba(16, 45, 22, 0.45); }
+  .plan:hover { transform: translateY(-6px); box-shadow: 0 22px 44px -24px rgba(16, 45, 22, 0.5); }
+
+  /* Figma size on a 380px card; shrinks faster than the card so the price always clears it. */
   .shape {
     position: absolute; top: 8px; right: 8px;
-    height: auto;
-    pointer-events: none;
-    transition: transform .6s var(--ease);
+    height: auto; pointer-events: none;
     transform-origin: 70% 30%;
+    transition: transform .7s var(--ease);
   }
   .shape path { fill: var(--forest); }
-  .plan:hover .shape { transform: rotate(-6deg) scale(1.04); }
-  /* Figma size on a 380px card, shrinking faster than the card so prices always clear the shape. */
+  .plan:hover .shape { transform: rotate(-6deg) scale(1.05); }
   .shape-basic, .shape-growth { width: clamp(60px, calc(72cqw - 150px), 124px); }
   .shape-scale { width: clamp(66px, calc(84cqw - 180px), 139px); }
 
   .plan-name {
-    margin: 0;
-    position: relative;
+    margin: 0; position: relative;
     font-family: var(--font-display); font-variation-settings: "opsz" 14;
-    font-weight: 500; font-size: clamp(32px, 10.5cqw, 40px); line-height: 1; letter-spacing: -0.02em;
+    font-weight: 500; font-size: 40px; line-height: 30px; letter-spacing: -0.02em;
   }
   .price {
     position: relative;
-    margin-top: 6px;
-    display: flex; align-items: baseline; gap: 2px;
+    margin-top: 2px;
+    display: flex; align-items: baseline;
     color: var(--forest-ink);
     font-family: var(--font-display); font-variation-settings: "opsz" 14;
   }
   .amount {
-    font-weight: 600; font-size: clamp(42px, calc(30cqw - 50px), 64px); line-height: 1.05; letter-spacing: -0.03em;
+    font-weight: 600; font-size: clamp(46px, calc(30cqw - 50px), 64px); line-height: 77px; letter-spacing: -0.02em;
     font-variant-numeric: tabular-nums;
   }
-  .amount .cents { font-size: 0.45em; letter-spacing: -0.01em; vertical-align: 0.95em; margin-left: 1px; }
-  .per { font-weight: 500; font-size: 16px; color: var(--ink-80); }
-  .blurb { margin: 6px 0 0; font-size: 13px; line-height: 1.35; letter-spacing: -0.01em; color: var(--ink-80); min-height: 2.7em; }
+  .amount .cents { font-size: 0.45em; letter-spacing: 0; vertical-align: 0.95em; margin-left: 1px; }
+  .per { font-weight: 500; font-size: 16px; letter-spacing: -0.01em; color: var(--ink-80); }
+  .blurb {
+    margin: 0; font-size: 12px; line-height: 15px; letter-spacing: -0.01em; color: var(--ink-80);
+    min-height: 15px;
+  }
 
   .features {
-    list-style: none; margin: clamp(14px, 2.6svh, 40px) 0 0; padding: 0;
-    display: grid; gap: clamp(7px, 1.1svh, 14px);
+    list-style: none; margin: 40px 0 0; padding: 0;
+    display: grid; gap: 14px;
   }
   .features li {
-    position: relative; padding-left: 14px;
-    font-weight: 500; font-size: 14px; line-height: 1.25; letter-spacing: -0.02em;
+    font-weight: 500; font-size: 14px; line-height: 17px; letter-spacing: -0.02em;
     color: var(--forest-ink);
   }
-  .features li::before {
-    content: ""; position: absolute; left: 1px; top: 0.5em;
-    width: 5px; height: 5px; border-radius: 50%; background: var(--forest-ink);
-  }
+  .features li::before { content: "•"; margin-right: 0.35em; }
+  .spacer { flex: 1; min-height: 32px; }
   .select {
     display: flex; align-items: center; justify-content: center;
-    width: 100%; height: 50px;
+    width: calc(100% - 5px); height: 50px;
     border: 0; border-radius: 40px; cursor: pointer;
     background: var(--forest); color: #ffffff;
     font-weight: 600; font-size: 14px; letter-spacing: -0.02em;
     transition: background-color .2s ease, transform .2s var(--ease);
   }
-  .plan-body { display: flex; flex-direction: column; flex: 1; }
-  .plan-body .spacer { flex: 1; min-height: clamp(16px, 2.6svh, 35px); }
   .select:hover { background: var(--forest-hover); }
   .select:active { transform: scale(0.98); }
 
   .badge {
     position: absolute; top: -18px; left: 50%; translate: -50% 0;
     display: inline-flex; align-items: center; gap: 8px;
-    padding: 7px 12px;
+    padding: 6px 10px;
     border: 1.8px solid var(--lime);
     border-radius: 20px;
     background: var(--forest); color: var(--lime);
     font-weight: 600; font-size: 14px; letter-spacing: -0.02em; white-space: nowrap;
-    filter: drop-shadow(0 2px 16px rgba(255, 255, 255, 0.85));
+    filter: drop-shadow(0 2px 16px rgba(255, 255, 255, 0.8));
     z-index: 2;
   }
   .badge i { width: 6px; height: 6px; border-radius: 50%; background: var(--lime); }
 
-  .dots { display: none; }
-
   .anim [data-in] { opacity: 0; }
 
   @media (prefers-reduced-motion: reduce) {
-    .plan, .shape, .select, .billing-label { transition: none; }
+    .plan, .shape, .select, .billing-label, .knob { transition: none; }
   }
 
-  /* ---------- Tablet + phone: snap carousel ---------- */
+  /* ---------- Laptop: three fluid columns ---------- */
+  @media (max-width: 1239px) {
+    .plans { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(16px, 2vw, 24px); }
+    .plan { min-height: 0; padding: clamp(48px, 18cqw, 74px) clamp(18px, 7cqw, 27px) 24px; }
+    .plan-name { font-size: clamp(32px, 10.5cqw, 40px); }
+    .blurb { min-height: 30px; }         /* two lines everywhere, so the feature lists line up */
+    .features { margin-top: 25px; }      /* keeps Figma's 55px from blurb top to the list */
+  }
+
+  /* ---------- Tablet + phone: one centred column ---------- */
   @media (max-width: 1023px) {
-    .plans-wrap { max-width: none; margin-inline: calc(-1 * var(--gutter)); width: calc(100% + 2 * var(--gutter)); }
-    .plans {
-      display: flex;
-      gap: 16px;
-      overflow-x: auto;
-      scroll-snap-type: x mandatory;
-      scroll-padding-inline: var(--gutter);
-      padding: 20px var(--gutter) 8px;
-      scrollbar-width: none;
-      overscroll-behavior-x: contain;
-    }
-    .plans::-webkit-scrollbar { display: none; }
-    .plan { flex: 0 0 min(380px, 76vw); scroll-snap-align: center; }
+    .plans { grid-template-columns: minmax(0, 460px); gap: 40px; }
+    .plan { padding: 64px 26px 24px; }
+    .blurb { min-height: 0; font-size: 13px; line-height: 17px; padding-right: 34%; }
+    .features { margin-top: 28px; }
     .plan:hover { transform: none; box-shadow: none; }
-    .dots { display: flex; justify-content: center; gap: 8px; margin-top: 14px; }
-    .dots button {
-      width: 8px; height: 8px; padding: 0; border: 0; border-radius: 8px; cursor: pointer;
-      background: rgba(16, 45, 22, 0.2);
-      transition: width .3s var(--ease), background-color .3s ease;
-    }
-    .dots button[aria-current="true"] { width: 24px; background: var(--forest); }
   }
   @media (max-width: 639px) {
-    .plan { flex-basis: calc(100vw - 2 * var(--gutter) - 28px); }
+    h2 { font-size: clamp(1.9rem, 8.4vw, 2.4rem); }
     .billing-label { font-size: 16px; }
-    .billing { gap: 10px; }
+    .plans { gap: 36px; }
+    .plan { padding: 56px 22px 22px; }
+    .select { width: 100%; }
   }
 </style>
 </head>
@@ -254,85 +249,77 @@
   </div>
   <span class="sr" id="billing-status" aria-live="polite"></span>
 
-  <div class="plans-wrap">
-    <div class="plans" id="plans">
-      <article class="plan" data-in aria-labelledby="plan-basic">
-        <svg class="shape shape-basic" viewBox="0 0 123.5 117.9" aria-hidden="true"><path d="M117.7 3.5L116.6 2.7L115.4 1.9L113.6 1.1L111.2 0.4L109.7 0.1L109.1 0.1L109.0 0.0L70.2 0.0L70.1 0.1L68.9 0.1L67.5 0.4L64.6 1.5L63.4 2.1L62.1 3.0L61.2 3.7L59.6 5.3L57.9 7.7L56.7 9.9L56.4 10.7L55.9 13.0L55.8 14.8L55.7 14.8L55.7 34.8L55.7 34.8L55.7 35.5L55.6 35.6L55.5 36.4L54.9 39.2L54.4 40.5L53.5 42.3L51.9 44.5L50.5 46.0L49.4 46.9L48.3 47.6L46.5 48.6L45.4 49.1L43.3 49.8L41.8 49.9L40.8 50.1L40.2 50.1L40.1 50.2L15.4 50.2L15.3 50.3L14.8 50.3L13.8 50.5L12.1 50.6L9.6 51.5L7.8 52.4L6.3 53.4L5.3 54.1L3.5 56.0L2.2 57.9L1.4 59.3L0.6 61.6L0.4 62.6L0.1 64.3L0.1 64.4L0.1 65.0L0.0 65.1L0.0 103.2L0.1 103.3L0.1 103.9L0.1 104.0L0.4 106.0L1.1 107.9L2.3 110.4L3.2 111.7L4.0 112.8L5.5 114.2L6.5 114.9L8.3 116.1L9.1 116.5L10.4 116.9L10.7 117.1L12.2 117.5L13.3 117.7L14.7 117.8L14.8 117.9L23.3 117.9L23.3 117.9L29.0 117.9L29.1 117.9L53.0 117.9L53.1 117.8L53.8 117.8L53.9 117.7L54.3 117.7L55.8 117.4L57.2 117.0L58.5 116.5L59.8 115.8L61.3 114.8L62.8 113.5L63.9 112.3L64.8 111.2L66.1 109.1L67.1 106.6L67.2 105.9L67.7 104.3L67.8 103.5L67.8 102.7L67.9 102.7L67.9 81.4L68.0 81.3L68.0 80.9L68.8 78.1L69.9 75.5L71.4 73.6L73.0 71.9L75.0 70.3L77.3 69.0L78.6 68.5L79.3 68.4L80.8 67.9L81.5 67.8L81.6 67.8L108.6 67.8L108.7 67.7L109.3 67.7L110.2 67.5L110.7 67.2L112.2 67.0L114.2 66.2L116.3 65.0L118.4 63.4L120.0 61.6L121.5 59.5L122.2 58.1L122.6 57.0L122.6 56.7L123.1 55.3L123.2 54.6L123.3 54.5L123.3 53.9L123.3 53.9L123.3 53.1L123.4 53.0L123.5 17.4L123.4 17.4L123.4 14.5L123.3 14.5L123.2 12.7L123.0 11.7L122.4 10.0L121.6 8.4L120.5 6.5L119.7 5.5Z"/></svg>
-        <div class="plan-body">
-          <h3 class="plan-name" id="plan-basic">Basic</h3>
-          <div class="price"><span class="amount" data-monthly="12">$12</span><span class="per">/month</span></div>
-          <p class="blurb">For early-stage teams building financial discipline</p>
-          <ul class="features">
-            <li>Live cash flow dashboard</li>
-            <li>3-month runway projection</li>
-            <li>Revenue &amp; expense tracking</li>
-            <li>Up to 3 integrations</li>
-            <li>Standard forecasting model</li>
-            <li>Email support</li>
-          </ul>
-          <span class="spacer"></span>
-          <button class="select" type="button">Select Plan</button>
-        </div>
-      </article>
+  <div class="plans">
+    <article class="plan" data-in aria-labelledby="plan-basic">
+      <svg class="shape shape-basic" viewBox="0 0 123.5 117.9" aria-hidden="true"><path d="M117.7 3.5L116.6 2.7L115.4 1.9L113.6 1.1L111.2 0.4L109.7 0.1L109.1 0.1L109.0 0.0L70.2 0.0L70.1 0.1L68.9 0.1L67.5 0.4L64.6 1.5L63.4 2.1L62.1 3.0L61.2 3.7L59.6 5.3L57.9 7.7L56.7 9.9L56.4 10.7L55.9 13.0L55.8 14.8L55.7 14.8L55.7 34.8L55.7 34.8L55.7 35.5L55.6 35.6L55.5 36.4L54.9 39.2L54.4 40.5L53.5 42.3L51.9 44.5L50.5 46.0L49.4 46.9L48.3 47.6L46.5 48.6L45.4 49.1L43.3 49.8L41.8 49.9L40.8 50.1L40.2 50.1L40.1 50.2L15.4 50.2L15.3 50.3L14.8 50.3L13.8 50.5L12.1 50.6L9.6 51.5L7.8 52.4L6.3 53.4L5.3 54.1L3.5 56.0L2.2 57.9L1.4 59.3L0.6 61.6L0.4 62.6L0.1 64.3L0.1 64.4L0.1 65.0L0.0 65.1L0.0 103.2L0.1 103.3L0.1 103.9L0.1 104.0L0.4 106.0L1.1 107.9L2.3 110.4L3.2 111.7L4.0 112.8L5.5 114.2L6.5 114.9L8.3 116.1L9.1 116.5L10.4 116.9L10.7 117.1L12.2 117.5L13.3 117.7L14.7 117.8L14.8 117.9L23.3 117.9L23.3 117.9L29.0 117.9L29.1 117.9L53.0 117.9L53.1 117.8L53.8 117.8L53.9 117.7L54.3 117.7L55.8 117.4L57.2 117.0L58.5 116.5L59.8 115.8L61.3 114.8L62.8 113.5L63.9 112.3L64.8 111.2L66.1 109.1L67.1 106.6L67.2 105.9L67.7 104.3L67.8 103.5L67.8 102.7L67.9 102.7L67.9 81.4L68.0 81.3L68.0 80.9L68.8 78.1L69.9 75.5L71.4 73.6L73.0 71.9L75.0 70.3L77.3 69.0L78.6 68.5L79.3 68.4L80.8 67.9L81.5 67.8L81.6 67.8L108.6 67.8L108.7 67.7L109.3 67.7L110.2 67.5L110.7 67.2L112.2 67.0L114.2 66.2L116.3 65.0L118.4 63.4L120.0 61.6L121.5 59.5L122.2 58.1L122.6 57.0L122.6 56.7L123.1 55.3L123.2 54.6L123.3 54.5L123.3 53.9L123.3 53.9L123.3 53.1L123.4 53.0L123.5 17.4L123.4 17.4L123.4 14.5L123.3 14.5L123.2 12.7L123.0 11.7L122.4 10.0L121.6 8.4L120.5 6.5L119.7 5.5Z"/></svg>
+      <h3 class="plan-name" id="plan-basic">Basic</h3>
+      <div class="price"><span class="amount" data-monthly="12">$12</span><span class="per">/month</span></div>
+      <p class="blurb">For early-stage teams building financial discipline</p>
+      <ul class="features">
+        <li>Live cash flow dashboard</li>
+        <li>3-month runway projection</li>
+        <li>Revenue &amp; expense tracking</li>
+        <li>Up to 3 integrations</li>
+        <li>Standard forecasting model</li>
+        <li>Email support</li>
+      </ul>
+      <span class="spacer"></span>
+      <button class="select" type="button">Select Plan</button>
+    </article>
 
-      <article class="plan plan-popular" data-in aria-labelledby="plan-growth">
-        <span class="badge"><i aria-hidden="true"></i>Most Popular</span>
-        <svg class="shape shape-growth" viewBox="0 0 123.5 173.7" aria-hidden="true"><path d="M68.1 0.4L66.7 0.7L64.9 1.4L63.3 2.3L61.4 3.6L59.8 5.1L58.8 6.5L57.8 7.8L57.0 9.6L56.4 10.9L55.9 12.9L55.9 13.8L55.8 13.8L55.8 14.9L55.7 15.0L55.7 35.0L55.7 35.1L55.7 35.8L55.6 35.9L55.4 37.3L54.9 39.2L54.8 39.4L54.3 40.9L53.7 42.0L52.1 44.4L50.5 46.1L48.5 47.6L46.1 48.9L43.4 49.8L41.8 50.0L40.2 50.3L15.5 50.3L15.4 50.3L14.8 50.3L14.7 50.4L12.1 50.7L11.2 51.0L8.7 52.0L7.6 52.6L5.1 54.4L3.9 55.7L2.4 57.6L1.4 59.7L0.8 61.2L0.4 62.8L0.2 63.9L0.1 64.0L0.1 64.7L0.1 64.8L0.1 70.8L0.0 70.9L0.0 101.3L0.1 101.4L0.1 103.6L0.1 103.7L0.1 104.2L0.2 104.3L0.4 105.8L0.9 107.6L2.2 110.2L3.1 111.7L4.2 113.1L5.3 114.1L7.1 115.4L8.2 116.1L10.4 117.1L12.2 117.6L13.3 117.8L13.8 117.8L13.8 117.9L14.5 117.9L14.5 117.9L39.7 117.9L39.7 118.0L40.9 118.0L41.0 118.1L42.3 118.2L43.3 118.4L44.9 118.9L45.1 118.9L47.5 120.1L49.9 121.8L51.6 123.3L53.0 125.1L53.7 126.3L54.3 127.4L55.1 129.5L55.7 132.4L55.7 133.1L55.7 133.1L55.7 159.2L55.8 159.3L55.8 160.1L55.9 160.2L55.9 161.0L56.3 162.1L56.3 162.3L57.0 164.3L57.7 165.6L58.6 167.0L59.5 168.2L61.1 169.8L62.7 171.1L63.6 171.6L66.0 172.7L68.8 173.5L69.8 173.6L69.8 173.7L109.2 173.7L109.3 173.6L109.9 173.6L110.6 173.4L110.9 173.3L112.4 172.9L114.3 172.2L116.1 171.3L118.1 169.8L120.0 167.8L121.2 166.0L122.3 163.8L123.2 161.3L123.3 158.8L123.4 158.8L123.4 121.0L123.3 121.0L123.3 119.0L123.2 118.9L123.1 118.2L122.6 116.6L122.0 115.3L121.1 113.5L120.0 112.0L117.3 109.3L116.0 108.4L114.0 107.4L112.8 106.9L111.6 106.6L110.8 106.3L109.8 106.1L109.2 106.1L109.2 106.1L82.5 106.1L82.4 106.0L81.4 105.9L78.5 105.1L77.8 104.8L77.3 104.6L75.2 103.5L73.2 102.0L71.2 99.9L70.2 98.4L68.8 95.5L68.4 94.1L68.0 93.2L67.9 92.5L67.9 92.0L67.8 91.9L67.8 81.6L68.0 80.5L68.3 79.8L68.6 78.5L68.8 77.9L69.7 76.1L71.2 73.9L72.0 72.9L73.2 71.8L74.6 70.6L76.2 69.7L78.0 68.8L79.6 68.4L80.5 68.0L81.6 67.8L108.7 67.8L108.8 67.8L109.3 67.8L110.4 67.4L112.5 67.0L115.2 65.7L116.8 64.7L117.9 63.9L119.7 62.1L121.3 59.8L122.4 57.7L123.2 55.2L123.3 53.1L123.4 53.1L123.4 52.1L123.5 52.1L123.5 15.8L123.4 15.7L123.4 14.7L123.3 14.6L123.2 12.5L122.4 10.1L121.2 7.8L119.8 5.8L118.0 3.9L117.1 3.1L115.7 2.2L113.4 1.1L111.0 0.4L109.8 0.2L109.7 0.1L109.2 0.1L109.2 0.1L108.3 0.1L108.2 0.0L72.4 0.0L72.4 0.1L70.3 0.1L70.2 0.1L69.5 0.1L69.4 0.2Z"/></svg>
-        <div class="plan-body">
-          <h3 class="plan-name" id="plan-growth">Growth</h3>
-          <div class="price"><span class="amount" data-monthly="49">$49</span><span class="per">/month</span></div>
-          <p class="blurb">For scaling companies optimizing burn and runway</p>
-          <ul class="features">
-            <li>12-month forecasting horizon</li>
-            <li>Burn rate analytics</li>
-            <li>Multi-channel revenue tracking</li>
-            <li>Scenario modeling (hiring &amp; pricing)</li>
-            <li>Up to 10 integrations</li>
-            <li>Team access controls</li>
-            <li>Priority support</li>
-          </ul>
-          <span class="spacer"></span>
-          <button class="select" type="button">Select Plan</button>
-        </div>
-      </article>
+    <article class="plan plan-popular" data-in aria-labelledby="plan-growth">
+      <span class="badge"><i aria-hidden="true"></i>Most Popular</span>
+      <svg class="shape shape-growth" viewBox="0 0 123.5 173.7" aria-hidden="true"><path d="M68.1 0.4L66.7 0.7L64.9 1.4L63.3 2.3L61.4 3.6L59.8 5.1L58.8 6.5L57.8 7.8L57.0 9.6L56.4 10.9L55.9 12.9L55.9 13.8L55.8 13.8L55.8 14.9L55.7 15.0L55.7 35.0L55.7 35.1L55.7 35.8L55.6 35.9L55.4 37.3L54.9 39.2L54.8 39.4L54.3 40.9L53.7 42.0L52.1 44.4L50.5 46.1L48.5 47.6L46.1 48.9L43.4 49.8L41.8 50.0L40.2 50.3L15.5 50.3L15.4 50.3L14.8 50.3L14.7 50.4L12.1 50.7L11.2 51.0L8.7 52.0L7.6 52.6L5.1 54.4L3.9 55.7L2.4 57.6L1.4 59.7L0.8 61.2L0.4 62.8L0.2 63.9L0.1 64.0L0.1 64.7L0.1 64.8L0.1 70.8L0.0 70.9L0.0 101.3L0.1 101.4L0.1 103.6L0.1 103.7L0.1 104.2L0.2 104.3L0.4 105.8L0.9 107.6L2.2 110.2L3.1 111.7L4.2 113.1L5.3 114.1L7.1 115.4L8.2 116.1L10.4 117.1L12.2 117.6L13.3 117.8L13.8 117.8L13.8 117.9L14.5 117.9L14.5 117.9L39.7 117.9L39.7 118.0L40.9 118.0L41.0 118.1L42.3 118.2L43.3 118.4L44.9 118.9L45.1 118.9L47.5 120.1L49.9 121.8L51.6 123.3L53.0 125.1L53.7 126.3L54.3 127.4L55.1 129.5L55.7 132.4L55.7 133.1L55.7 133.1L55.7 159.2L55.8 159.3L55.8 160.1L55.9 160.2L55.9 161.0L56.3 162.1L56.3 162.3L57.0 164.3L57.7 165.6L58.6 167.0L59.5 168.2L61.1 169.8L62.7 171.1L63.6 171.6L66.0 172.7L68.8 173.5L69.8 173.6L69.8 173.7L109.2 173.7L109.3 173.6L109.9 173.6L110.6 173.4L110.9 173.3L112.4 172.9L114.3 172.2L116.1 171.3L118.1 169.8L120.0 167.8L121.2 166.0L122.3 163.8L123.2 161.3L123.3 158.8L123.4 158.8L123.4 121.0L123.3 121.0L123.3 119.0L123.2 118.9L123.1 118.2L122.6 116.6L122.0 115.3L121.1 113.5L120.0 112.0L117.3 109.3L116.0 108.4L114.0 107.4L112.8 106.9L111.6 106.6L110.8 106.3L109.8 106.1L109.2 106.1L109.2 106.1L82.5 106.1L82.4 106.0L81.4 105.9L78.5 105.1L77.8 104.8L77.3 104.6L75.2 103.5L73.2 102.0L71.2 99.9L70.2 98.4L68.8 95.5L68.4 94.1L68.0 93.2L67.9 92.5L67.9 92.0L67.8 91.9L67.8 81.6L68.0 80.5L68.3 79.8L68.6 78.5L68.8 77.9L69.7 76.1L71.2 73.9L72.0 72.9L73.2 71.8L74.6 70.6L76.2 69.7L78.0 68.8L79.6 68.4L80.5 68.0L81.6 67.8L108.7 67.8L108.8 67.8L109.3 67.8L110.4 67.4L112.5 67.0L115.2 65.7L116.8 64.7L117.9 63.9L119.7 62.1L121.3 59.8L122.4 57.7L123.2 55.2L123.3 53.1L123.4 53.1L123.4 52.1L123.5 52.1L123.5 15.8L123.4 15.7L123.4 14.7L123.3 14.6L123.2 12.5L122.4 10.1L121.2 7.8L119.8 5.8L118.0 3.9L117.1 3.1L115.7 2.2L113.4 1.1L111.0 0.4L109.8 0.2L109.7 0.1L109.2 0.1L109.2 0.1L108.3 0.1L108.2 0.0L72.4 0.0L72.4 0.1L70.3 0.1L70.2 0.1L69.5 0.1L69.4 0.2Z"/></svg>
+      <h3 class="plan-name" id="plan-growth">Growth</h3>
+      <div class="price"><span class="amount" data-monthly="49">$49</span><span class="per">/month</span></div>
+      <p class="blurb">For scaling companies optimizing burn and runway</p>
+      <ul class="features">
+        <li>12-month forecasting horizon</li>
+        <li>Burn rate analytics</li>
+        <li>Multi-channel revenue tracking</li>
+        <li>Scenario modeling (hiring &amp; pricing)</li>
+        <li>Up to 10 integrations</li>
+        <li>Team access controls</li>
+        <li>Priority support</li>
+      </ul>
+      <span class="spacer"></span>
+      <button class="select" type="button">Select Plan</button>
+    </article>
 
-      <article class="plan" data-in aria-labelledby="plan-scale">
-        <svg class="shape shape-scale" viewBox="0 0 139.0 175.4" aria-hidden="true"><path d="M132.6 3.0L131.2 2.1L129.9 1.4L127.8 0.6L125.9 0.2L124.8 0.1L124.7 0.1L123.6 0.1L123.5 0.0L122.7 0.0L122.6 0.1L100.0 0.1L99.9 0.0L87.6 0.1L87.5 0.1L86.3 0.2L84.9 0.5L83.0 1.2L81.9 1.7L80.4 2.7L79.6 3.2L78.3 4.5L77.0 6.3L76.3 7.4L75.8 8.4L75.1 10.3L75.0 10.9L74.9 12.1L74.8 12.2L74.7 13.9L74.6 14.0L74.6 14.6L74.3 16.1L74.2 17.7L73.4 19.8L72.7 21.1L71.4 23.0L69.3 25.2L68.0 26.1L65.9 27.2L64.7 27.6L63.5 27.9L62.3 28.1L62.2 28.2L61.6 28.2L61.6 28.2L60.8 28.2L60.7 28.3L26.0 28.3L25.9 28.4L25.0 28.4L24.9 28.4L23.8 28.5L22.8 28.7L21.0 29.3L18.7 30.5L16.6 32.0L15.0 33.6L13.9 35.0L12.8 36.8L11.8 38.9L11.4 40.7L11.2 41.2L10.9 42.6L10.9 78.2L10.9 78.3L11.0 79.1L11.9 82.3L13.0 84.5L14.2 86.4L14.8 87.2L16.6 88.9L18.0 90.0L18.9 90.6L20.7 91.4L22.5 92.1L23.4 92.3L23.9 92.3L24.0 92.4L24.4 92.4L25.5 92.6L26.8 92.6L26.9 92.7L52.8 92.7L52.9 92.7L53.9 92.8L55.5 93.2L57.2 94.0L58.0 94.5L59.5 96.0L60.6 97.3L61.1 98.5L61.6 100.0L61.6 101.1L61.7 101.2L61.7 102.7L61.6 102.7L61.6 103.2L61.4 104.3L60.9 105.7L60.3 106.8L59.3 107.9L58.1 109.1L57.0 109.8L55.7 110.4L54.5 110.7L53.4 111.0L52.2 111.0L52.1 111.0L18.6 111.0L18.5 111.0L15.8 111.0L15.7 111.0L14.6 111.0L14.5 111.1L13.4 111.1L12.2 111.3L10.9 111.8L10.2 112.0L8.0 113.0L5.5 114.9L3.9 116.5L3.2 117.3L2.0 119.1L1.0 121.2L0.4 123.3L0.2 124.1L0.2 124.6L0.1 124.6L0.1 125.6L0.1 125.6L0.1 144.4L0.0 144.4L0.0 146.4L0.1 146.4L0.1 148.4L0.0 148.5L0.0 154.3L0.1 154.4L0.0 159.3L0.1 159.3L0.1 160.6L0.1 160.6L0.2 162.3L0.8 164.6L2.0 167.3L2.8 168.6L3.7 169.7L5.4 171.4L6.7 172.4L8.4 173.4L9.9 174.2L12.0 175.0L12.7 175.0L12.7 175.1L13.3 175.1L13.4 175.2L14.8 175.2L14.8 175.3L15.7 175.3L15.8 175.4L53.6 175.4L53.6 175.3L54.2 175.3L54.3 175.2L56.2 175.0L57.5 174.5L58.7 174.0L59.7 173.3L61.0 172.2L62.4 170.6L63.0 169.6L63.9 167.5L64.3 165.0L64.4 165.0L64.4 164.5L64.4 164.4L64.4 163.8L64.5 163.7L64.5 163.2L64.8 161.8L64.8 161.4L65.0 160.6L65.8 158.7L67.2 156.6L68.3 155.4L70.0 154.2L71.8 153.2L73.3 152.7L74.5 152.6L74.6 152.5L75.5 152.5L75.6 152.4L111.3 152.4L111.4 152.4L112.0 152.4L114.6 151.8L116.6 151.1L118.2 150.3L119.7 149.4L121.2 148.1L122.2 147.1L122.8 146.4L124.0 144.6L125.1 142.3L125.7 140.2L126.0 138.7L126.0 101.7L125.9 101.6L125.9 100.7L125.2 98.4L124.6 97.1L123.7 95.3L122.4 93.5L120.7 91.9L119.1 90.6L117.2 89.6L115.8 89.0L112.7 88.1L112.1 88.1L112.0 88.1L86.3 88.1L84.8 87.8L82.9 87.2L80.9 86.1L79.4 85.0L78.1 83.6L77.4 82.7L76.8 81.7L76.0 79.6L75.7 78.6L75.7 78.2L75.6 78.1L75.6 74.3L75.7 74.2L75.7 73.4L76.5 71.3L77.2 70.1L77.8 69.1L79.5 67.3L80.6 66.4L81.8 65.7L83.5 64.9L85.7 64.4L87.6 64.4L87.6 64.3L124.7 64.3L124.8 64.2L125.6 64.2L125.6 64.2L126.4 64.1L128.6 63.5L130.8 62.6L132.3 61.6L133.3 60.8L135.6 58.5L137.1 56.3L138.0 54.4L138.5 53.0L138.7 52.3L139.0 51.3L139.0 50.0L139.0 49.9L139.0 14.6L139.0 14.5L139.0 13.1L138.9 13.0L138.8 12.2L138.0 10.0L136.7 7.6L135.9 6.3L134.6 4.8Z"/></svg>
-        <div class="plan-body">
-          <h3 class="plan-name" id="plan-scale">Scale</h3>
-          <div class="price"><span class="amount" data-monthly="199">$199</span><span class="per">/month</span></div>
-          <p class="blurb">For advanced financial operations and enterprise reporting</p>
-          <ul class="features">
-            <li>18-month predictive forecasting</li>
-            <li>Unlimited integrations</li>
-            <li>Advanced multi-scenario modeling</li>
-            <li>Department-level reporting</li>
-            <li>Audit logs &amp; advanced permissions</li>
-            <li>Dedicated account manager</li>
-            <li>SLA-backed support</li>
-          </ul>
-          <span class="spacer"></span>
-          <button class="select" type="button">Select Plan</button>
-        </div>
-      </article>
-    </div>
-    <div class="dots" role="group" aria-label="Plans">
-      <button type="button" aria-label="Show Basic"></button>
-      <button type="button" aria-label="Show Growth"></button>
-      <button type="button" aria-label="Show Scale"></button>
-    </div>
+    <article class="plan" data-in aria-labelledby="plan-scale">
+      <svg class="shape shape-scale" viewBox="0 0 139.0 175.4" aria-hidden="true"><path d="M132.6 3.0L131.2 2.1L129.9 1.4L127.8 0.6L125.9 0.2L124.8 0.1L124.7 0.1L123.6 0.1L123.5 0.0L122.7 0.0L122.6 0.1L100.0 0.1L99.9 0.0L87.6 0.1L87.5 0.1L86.3 0.2L84.9 0.5L83.0 1.2L81.9 1.7L80.4 2.7L79.6 3.2L78.3 4.5L77.0 6.3L76.3 7.4L75.8 8.4L75.1 10.3L75.0 10.9L74.9 12.1L74.8 12.2L74.7 13.9L74.6 14.0L74.6 14.6L74.3 16.1L74.2 17.7L73.4 19.8L72.7 21.1L71.4 23.0L69.3 25.2L68.0 26.1L65.9 27.2L64.7 27.6L63.5 27.9L62.3 28.1L62.2 28.2L61.6 28.2L61.6 28.2L60.8 28.2L60.7 28.3L26.0 28.3L25.9 28.4L25.0 28.4L24.9 28.4L23.8 28.5L22.8 28.7L21.0 29.3L18.7 30.5L16.6 32.0L15.0 33.6L13.9 35.0L12.8 36.8L11.8 38.9L11.4 40.7L11.2 41.2L10.9 42.6L10.9 78.2L10.9 78.3L11.0 79.1L11.9 82.3L13.0 84.5L14.2 86.4L14.8 87.2L16.6 88.9L18.0 90.0L18.9 90.6L20.7 91.4L22.5 92.1L23.4 92.3L23.9 92.3L24.0 92.4L24.4 92.4L25.5 92.6L26.8 92.6L26.9 92.7L52.8 92.7L52.9 92.7L53.9 92.8L55.5 93.2L57.2 94.0L58.0 94.5L59.5 96.0L60.6 97.3L61.1 98.5L61.6 100.0L61.6 101.1L61.7 101.2L61.7 102.7L61.6 102.7L61.6 103.2L61.4 104.3L60.9 105.7L60.3 106.8L59.3 107.9L58.1 109.1L57.0 109.8L55.7 110.4L54.5 110.7L53.4 111.0L52.2 111.0L52.1 111.0L18.6 111.0L18.5 111.0L15.8 111.0L15.7 111.0L14.6 111.0L14.5 111.1L13.4 111.1L12.2 111.3L10.9 111.8L10.2 112.0L8.0 113.0L5.5 114.9L3.9 116.5L3.2 117.3L2.0 119.1L1.0 121.2L0.4 123.3L0.2 124.1L0.2 124.6L0.1 124.6L0.1 125.6L0.1 125.6L0.1 144.4L0.0 144.4L0.0 146.4L0.1 146.4L0.1 148.4L0.0 148.5L0.0 154.3L0.1 154.4L0.0 159.3L0.1 159.3L0.1 160.6L0.1 160.6L0.2 162.3L0.8 164.6L2.0 167.3L2.8 168.6L3.7 169.7L5.4 171.4L6.7 172.4L8.4 173.4L9.9 174.2L12.0 175.0L12.7 175.0L12.7 175.1L13.3 175.1L13.4 175.2L14.8 175.2L14.8 175.3L15.7 175.3L15.8 175.4L53.6 175.4L53.6 175.3L54.2 175.3L54.3 175.2L56.2 175.0L57.5 174.5L58.7 174.0L59.7 173.3L61.0 172.2L62.4 170.6L63.0 169.6L63.9 167.5L64.3 165.0L64.4 165.0L64.4 164.5L64.4 164.4L64.4 163.8L64.5 163.7L64.5 163.2L64.8 161.8L64.8 161.4L65.0 160.6L65.8 158.7L67.2 156.6L68.3 155.4L70.0 154.2L71.8 153.2L73.3 152.7L74.5 152.6L74.6 152.5L75.5 152.5L75.6 152.4L111.3 152.4L111.4 152.4L112.0 152.4L114.6 151.8L116.6 151.1L118.2 150.3L119.7 149.4L121.2 148.1L122.2 147.1L122.8 146.4L124.0 144.6L125.1 142.3L125.7 140.2L126.0 138.7L126.0 101.7L125.9 101.6L125.9 100.7L125.2 98.4L124.6 97.1L123.7 95.3L122.4 93.5L120.7 91.9L119.1 90.6L117.2 89.6L115.8 89.0L112.7 88.1L112.1 88.1L112.0 88.1L86.3 88.1L84.8 87.8L82.9 87.2L80.9 86.1L79.4 85.0L78.1 83.6L77.4 82.7L76.8 81.7L76.0 79.6L75.7 78.6L75.7 78.2L75.6 78.1L75.6 74.3L75.7 74.2L75.7 73.4L76.5 71.3L77.2 70.1L77.8 69.1L79.5 67.3L80.6 66.4L81.8 65.7L83.5 64.9L85.7 64.4L87.6 64.4L87.6 64.3L124.7 64.3L124.8 64.2L125.6 64.2L125.6 64.2L126.4 64.1L128.6 63.5L130.8 62.6L132.3 61.6L133.3 60.8L135.6 58.5L137.1 56.3L138.0 54.4L138.5 53.0L138.7 52.3L139.0 51.3L139.0 50.0L139.0 49.9L139.0 14.6L139.0 14.5L139.0 13.1L138.9 13.0L138.8 12.2L138.0 10.0L136.7 7.6L135.9 6.3L134.6 4.8Z"/></svg>
+      <h3 class="plan-name" id="plan-scale">Scale</h3>
+      <div class="price"><span class="amount" data-monthly="199">$199</span><span class="per">/month</span></div>
+      <p class="blurb">For advanced financial operations and enterprise reporting</p>
+      <ul class="features">
+        <li>18-month predictive forecasting</li>
+        <li>Unlimited integrations</li>
+        <li>Advanced multi-scenario modeling</li>
+        <li>Department-level reporting</li>
+        <li>Audit logs &amp; advanced permissions</li>
+        <li>Dedicated account manager</li>
+        <li>SLA-backed support</li>
+      </ul>
+      <span class="spacer"></span>
+      <button class="select" type="button">Select Plan</button>
+    </article>
   </div>
 </section>
 
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.3.26/dist/lenis.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/motion@14.0.0/dist/motion.js"></script>
 <script>
   var hasMotion = !!window.Motion;
   var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+  /* Smooth scrolling (wheel + trackpad; touch keeps native momentum) */
+  if (window.Lenis && !reduce) {
+    window.lenis = new Lenis({ autoRaf: true, lerp: 0.09, wheelMultiplier: 1 });
+  }
+
   /* Price formatting: whole dollars, or dollars + small cents */
   function renderAmount(el, v) {
-    var cents = Math.round(v * 100) % 100;
-    var whole = Math.floor(Math.round(v * 100) / 100);
+    var c = Math.round(v * 100), cents = c % 100, whole = Math.floor(c / 100);
     el.innerHTML = "$" + whole.toLocaleString("en-US") + (cents ? '<span class="cents">.' + String(cents).padStart(2, "0") + "</span>" : "");
   }
 
@@ -344,16 +331,12 @@
     var status = document.getElementById("billing-status");
     var amounts = document.querySelectorAll(".amount");
     var yearly = false;
-
     function set(next) {
       if (next === yearly) return;
       yearly = next;
       sw.setAttribute("aria-checked", String(yearly));
       labels.forEach(function (b) { b.setAttribute("aria-pressed", String((b.dataset.period === "yearly") === yearly)); });
       status.textContent = yearly ? "Yearly billing selected. Prices shown per month, 20% off." : "Monthly billing selected.";
-      if (hasMotion && !reduce) {
-        Motion.animate(knob, { scaleX: [1, 1.35, 1] }, { duration: 0.35 });
-      }
       amounts.forEach(function (el) {
         var m = parseFloat(el.dataset.monthly);
         var from = yearly ? m : m * 0.8, to = yearly ? m * 0.8 : m;
@@ -367,68 +350,53 @@
     labels.forEach(function (b) { b.addEventListener("click", function () { set(b.dataset.period === "yearly"); }); });
   })();
 
-  /* Carousel (tablet + phone): start on the popular plan, keep dots in sync */
-  (function () {
-    var track = document.getElementById("plans");
-    var cards = track.querySelectorAll(".plan");
-    var dots = document.querySelectorAll(".dots button");
-    var mq = window.matchMedia("(max-width: 1023px)");
-    function centerOn(i, smooth) {
-      var c = cards[i];
-      track.scrollTo({ left: c.offsetLeft - (track.clientWidth - c.clientWidth) / 2, behavior: smooth ? "smooth" : "auto" });
-    }
-    function sync() {
-      var mid = track.scrollLeft + track.clientWidth / 2, best = 0, bd = Infinity;
-      cards.forEach(function (c, i) { var d = Math.abs(c.offsetLeft + c.clientWidth / 2 - mid); if (d < bd) { bd = d; best = i; } });
-      dots.forEach(function (d, i) { d.setAttribute("aria-current", String(i === best)); });
-    }
-    dots.forEach(function (d, i) { d.addEventListener("click", function () { centerOn(i, !reduce); }); });
-    track.addEventListener("scroll", function () { requestAnimationFrame(sync); }, { passive: true });
-    function init() { if (mq.matches) centerOn(1, false); sync(); }
-    init();
-    mq.addEventListener("change", init);
-  })();
-
-  /* Load-in sequence (motion.dev) */
+  /* Motion: header plays on load, each card plays as it scrolls into view */
   (function () {
     var root = document.documentElement;
     var h2 = document.querySelector("[data-split]");
-    var parts = h2.innerHTML.split(/<br[^>]*>/);
+    var lines = h2.innerHTML.split(/<br[^>]*>/);
     h2.setAttribute("aria-label", h2.textContent.replace(/\s+/g, " ").trim());
-    h2.innerHTML = parts.map(function (p) {
-      return p.trim().split(/\s+/).map(function (w) { return '<span class="w" aria-hidden="true">' + w + "</span>"; }).join(" ");
+    h2.innerHTML = lines.map(function (l) {
+      return l.trim().split(/\s+/).map(function (w) { return '<span class="w" aria-hidden="true">' + w + "</span>"; }).join(" ");
     }).join(' <br class="br-lg">');
 
     function reveal() { root.classList.remove("anim"); }
     if (!hasMotion || reduce) { reveal(); return; }
 
-    var animate = Motion.animate, stagger = Motion.stagger;
+    var animate = Motion.animate, stagger = Motion.stagger, inView = Motion.inView;
     var ease = [0.22, 1, 0.36, 1];
     var $ = function (s) { return document.querySelector(s); };
-    var $$ = function (s) { return document.querySelectorAll(s); };
-    var wordEls = h2.querySelectorAll(".w");
-    var cards = $$(".plan");
+    var cards = document.querySelectorAll(".plan");
 
-    document.querySelectorAll("[data-in], .w, .shape, .features li, .select, .badge, .dots").forEach(function (el) { el.style.opacity = "0"; });
+    document.querySelectorAll("[data-in], h2 .w, .shape, .features li, .select, .badge").forEach(function (el) { el.style.opacity = "0"; });
     reveal();
 
     animate($(".eyebrow"), { opacity: [0, 1], y: [12, 0] }, { duration: 0.6, ease: ease, delay: 0.05 });
-    animate(wordEls, { opacity: [0, 1], y: [34, 0], filter: ["blur(10px)", "blur(0px)"] }, { duration: 0.8, ease: ease, delay: stagger(0.05, { startDelay: 0.12 }) });
-    animate($(".billing"), { opacity: [0, 1], y: [14, 0], scale: [0.96, 1] }, { duration: 0.7, ease: ease, delay: 0.5 });
-    animate($(".save"), { scale: [0, 1], rotate: [-12, 0] }, { type: "spring", stiffness: 380, damping: 14, delay: 0.95 });
+    animate(h2.querySelectorAll(".w"), { opacity: [0, 1], y: [34, 0], filter: ["blur(10px)", "blur(0px)"] }, { duration: 0.8, ease: ease, delay: stagger(0.05, { startDelay: 0.12 }) });
+    animate($(".billing"), { opacity: [0, 1], y: [14, 0], scale: [0.96, 1] }, { duration: 0.7, ease: ease, delay: 0.45 });
+    animate($(".save"), { scale: [0, 1], rotate: [-12, 0] }, { type: "spring", stiffness: 380, damping: 14, delay: 0.9 });
 
-    animate(cards, { opacity: [0, 1], y: [70, 0], scale: [0.96, 1] }, { type: "spring", stiffness: 120, damping: 18, delay: stagger(0.1, { startDelay: 0.55 }) });
-    cards.forEach(function (card, i) {
-      var d = 0.75 + i * 0.1;
-      animate(card.querySelector(".shape"), { opacity: [0, 1], scale: [0.3, 1], rotate: [-35, 0] }, { type: "spring", stiffness: 140, damping: 13, delay: d + 0.15 });
-      animate(card.querySelectorAll(".features li"), { opacity: [0, 1], x: [-10, 0] }, { duration: 0.5, ease: ease, delay: stagger(0.045, { startDelay: d + 0.25 }) });
-      animate(card.querySelector(".select"), { opacity: [0, 1], y: [10, 0] }, { duration: 0.5, ease: ease, delay: d + 0.55 });
-      var amt = card.querySelector(".amount"), target = parseFloat(amt.dataset.monthly);
-      renderAmount(amt, 0);
-      animate(0, target, { duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: d + 0.1, onUpdate: function (v) { renderAmount(amt, Math.round(v)); } });
+    // Cards visible on first paint stagger in after the header; later ones play as they arrive.
+    var firstScreen = 0;
+    cards.forEach(function (card) {
+      var visibleNow = card.getBoundingClientRect().top < window.innerHeight;
+      var base = visibleNow ? 0.55 + 0.1 * firstScreen++ : 0;
+      inView(card, function () {
+        if (card.dataset.played) return;
+        card.dataset.played = "1";
+        var d = base;
+        animate(card, { opacity: [0, 1], y: [70, 0], scale: [0.96, 1] }, { type: "spring", stiffness: 120, damping: 18, delay: d });
+        animate(card.querySelector(".shape"), { opacity: [0, 1], scale: [0.3, 1], rotate: [-35, 0] }, { type: "spring", stiffness: 140, damping: 13, delay: d + 0.2 });
+        animate(card.querySelectorAll(".features li"), { opacity: [0, 1], x: [-10, 0] }, { duration: 0.5, ease: ease, delay: stagger(0.045, { startDelay: d + 0.3 }) });
+        animate(card.querySelector(".select"), { opacity: [0, 1], y: [10, 0] }, { duration: 0.5, ease: ease, delay: d + 0.6 });
+        var badge = card.querySelector(".badge");
+        if (badge) animate(badge, { opacity: [0, 1], y: [10, 0], scale: [0.6, 1] }, { type: "spring", stiffness: 300, damping: 15, delay: d + 0.55 });
+        var amt = card.querySelector(".amount"), target = parseFloat(amt.dataset.monthly);
+        if (document.getElementById("billing-switch").getAttribute("aria-checked") === "true") target *= 0.8;
+        renderAmount(amt, 0);
+        animate(0, target, { duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: d + 0.15, onUpdate: function (v) { renderAmount(amt, target % 1 ? v : Math.round(v)); } }).then(function () { renderAmount(amt, target); });
+      }, { amount: 0.2 });
     });
-    animate($(".badge"), { opacity: [0, 1], y: [10, 0], scale: [0.6, 1] }, { type: "spring", stiffness: 300, damping: 15, delay: 1.25 });
-    animate($(".dots"), { opacity: [0, 1] }, { duration: 0.5, delay: 1.2 });
   })();
 </script>
 </body>
