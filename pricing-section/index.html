@@ -20,7 +20,6 @@
     --forest: #325832;
     --forest-hover: #3d6b3d;
     --forest-ink: #102d16;
-    --dot: #18b26b;
     --font-display: "Bricolage Grotesque", "Inter", system-ui, sans-serif;
     --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
     --font-label: "Urbanist", "Inter", system-ui, sans-serif;
@@ -56,15 +55,8 @@
   }
 
   /* ---------- Header ---------- */
-  .eyebrow {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 3px 24px;
-    font-family: var(--font-label);
-    font-weight: 500; font-size: 14px; line-height: 30px; letter-spacing: 0.02em;
-  }
-  .eyebrow i { width: 6px; height: 6px; border-radius: 50%; background: var(--dot); }
   h2 {
-    margin: 24px 0 0;
+    margin: 0;
     max-width: 885px;
     text-align: center;
     font-family: var(--font-display);
@@ -239,7 +231,6 @@
 </head>
 <body>
 <section class="pricing" aria-labelledby="pricing-title">
-  <span class="eyebrow" data-in><i aria-hidden="true"></i>Pricing</span>
   <h2 id="pricing-title" data-split>Make the Smart Choice for <br class="br-lg">Your Business</h2>
 
   <div class="billing" data-in>
@@ -371,8 +362,7 @@
     document.querySelectorAll("[data-in], h2 .w, .shape, .features li, .select, .badge").forEach(function (el) { el.style.opacity = "0"; });
     reveal();
 
-    animate($(".eyebrow"), { opacity: [0, 1], y: [12, 0] }, { duration: 0.6, ease: ease, delay: 0.05 });
-    animate(h2.querySelectorAll(".w"), { opacity: [0, 1], y: [34, 0], filter: ["blur(10px)", "blur(0px)"] }, { duration: 0.8, ease: ease, delay: stagger(0.05, { startDelay: 0.12 }) });
+    animate(h2.querySelectorAll(".w"), { opacity: [0, 1], y: [34, 0], filter: ["blur(10px)", "blur(0px)"] }, { duration: 0.8, ease: ease, delay: stagger(0.05, { startDelay: 0.05 }) });
     animate($(".billing"), { opacity: [0, 1], y: [14, 0], scale: [0.96, 1] }, { duration: 0.7, ease: ease, delay: 0.45 });
     animate($(".save"), { scale: [0, 1], rotate: [-12, 0] }, { type: "spring", stiffness: 380, damping: 14, delay: 0.9 });
 
