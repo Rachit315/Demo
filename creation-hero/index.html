@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Creation Portfolio Hero</title>
+<script>document.documentElement.classList.add("anim");</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500&display=swap">
+<style>
+  /* Layout: one-screen white canvas drawn like a design-tool artboard (dashed guides, selection handles);
+     two Michelangelo hands reach in from opposite corners toward the centred statement. */
+  :root {
+    --paper: #ffffff;
+    --ink: #0a0a0a;
+    --ink-soft: #1c1c1c;
+    --guide: #d6d6d6;
+    --handle: #8a8888;
+    --handle-fill: #e9e9e9;
+    --nav: #000000;
+    --nav-text: #ffffff;
+    --font: "Inter Tight", "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+    --gutter: clamp(16px, 4vw, 32px);
+    --rail: clamp(16px, 5.9vw, 85px);
+    --rule-y: clamp(96px, 18svh, 184px);
+    --nav-top: clamp(14px, 3.9svh, 40px);
+    color-scheme: light;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  img { max-width: 100%; display: block; }
+  a { color: inherit; text-decoration: none; }
+  :focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
+
+  /* ---------- Hero: exactly one screen ---------- */
+  .hero {
+    position: relative;
+    height: 100vh;
+    height: calc(100svh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    min-height: 540px;
+    overflow: hidden;
+    background: var(--paper);
+    isolation: isolate;
+  }
+
+  /* Artboard guides */
+  .guide { position: absolute; pointer-events: none; z-index: 0; }
+  .guide-v {
+    top: 0; bottom: 0; width: 1px;
+    background: repeating-linear-gradient(180deg, var(--guide) 0 6px, transparent 6px 12px);
+    transform-origin: 50% 0;
+  }
+  .guide-v.l { left: var(--rail); }
+  .guide-v.r { right: var(--rail); }
+  .guide-h {
+    left: 0; right: 0; top: var(--rule-y); height: 1px;
+    background: repeating-linear-gradient(90deg, var(--guide) 0 6px, transparent 6px 12px);
+  }
+  .marker {
+    position: absolute; z-index: 1;
+    top: var(--rule-y);
+    width: 20px; height: 20px;
+    margin: -10px 0 0 -10px;
+    border-radius: 50%;
+    background: var(--paper);
+    border: 1px solid var(--guide);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+    display: grid; place-items: center;
+  }
+  .marker::after { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--guide); }
+  .marker.l { left: calc(var(--rail) + 0.5px); }
+  .marker.r { left: calc(100% - var(--rail) - 0.5px); }
+
+  /* Outline shapes (same mark as the logo) */
+  .shape { position: absolute; z-index: 1; width: clamp(64px, 13.9vw, 200px); height: auto; overflow: visible; }
+  .shape path { fill: none; stroke: var(--ink); stroke-width: 1.6; vector-effect: non-scaling-stroke; }
+  .shape-tl { top: clamp(12px, 2.3svh, 24px); left: clamp(12px, 1.7vw, 24px); transform: rotate(180deg); }
+  .shape-br { bottom: clamp(12px, 2.3svh, 24px); right: clamp(12px, 1.7vw, 24px); }
+
+  /* Hands */
+  .hand { position: absolute; z-index: 2; pointer-events: none; user-select: none; height: auto; }
+  .hand-r { top: -14px; right: -14px; width: min(31.5vw, 44.3svh); transform-origin: 100% 0; }
+  .hand-l { bottom: -14px; left: -14px; width: min(38.5vw, 54svh); transform-origin: 0 100%; }
+  .hand-wrap { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+  .drift-r, .drift-l { position: absolute; inset: 0; }
+  .drift-r { animation: drift-r 9s ease-in-out infinite; }
+  .drift-l { animation: drift-l 9s ease-in-out infinite; }
+  @keyframes drift-r { 0%, 100% { translate: 0 0; } 50% { translate: -8px 6px; } }
+  @keyframes drift-l { 0%, 100% { translate: 0 0; } 50% { translate: 8px -6px; } }
+
+  /* ---------- Nav ---------- */
+  .nav-wrap {
+    position: absolute; z-index: 10;
+    top: var(--nav-top); left: 50%;
+    width: min(500px, calc(100% - 2 * var(--gutter)));
+    translate: -50% 0;
+  }
+  .nav {
+    position: relative;
+    height: 60px;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    padding-inline: clamp(4px, 2%, 16px);
+    background: var(--nav);
+    color: var(--nav-text);
+  }
+  .nav ul { display: flex; margin: 0; padding: 0; list-style: none; justify-content: space-around; }
+  .nav a.link {
+    position: relative;
+    font-size: 16px;
+    line-height: 1.3;
+    letter-spacing: 0.02em;
+    text-transform: lowercase;
+    padding-block: 4px;
+  }
+  .nav a.link::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px;
+    background: currentColor; transform: scaleX(0); transform-origin: 0 50%;
+    transition: transform .3s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .nav a.link:hover::after, .nav a.link:focus-visible::after { transform: scaleX(1); }
+  .nav a.link:focus-visible { outline-color: var(--nav-text); }
+  .logo { display: block; width: 30px; height: 37.5px; }
+  .logo svg { width: 100%; height: 100%; display: block; }
+  .logo path { fill: var(--nav-text); transform: rotate(180deg); transform-origin: 100px 125px; }
+
+  /* Selection handles (nav + email chip) */
+  .handles i {
+    position: absolute; width: 8px; height: 8px;
+    background: var(--handle-fill); border: 1px solid var(--handle);
+  }
+  .handles i:nth-child(1) { top: -4px; left: -4px; }
+  .handles i:nth-child(2) { top: -4px; right: -4px; }
+  .handles i:nth-child(3) { bottom: -4px; left: -4px; }
+  .handles i:nth-child(4) { bottom: -4px; right: -4px; }
+
+  /* ---------- Statement ---------- */
+  .stage {
+    position: absolute; z-index: 3;
+    inset: var(--rule-y) 0 0;
+    display: grid;
+    place-items: center;
+    padding: 0 var(--gutter) clamp(24px, 9svh, 96px);
+    pointer-events: none;
+  }
+  .copy { display: flex; flex-direction: column; align-items: center; text-align: center; pointer-events: auto; }
+  h1 {
+    margin: 0;
+    font-weight: 500;
+    font-size: clamp(2.25rem, min(4.45vw, 7svh), 4rem);
+    line-height: 1.02;
+    letter-spacing: -0.035em;
+    color: var(--ink);
+  }
+  h1 .line { display: block; white-space: nowrap; }
+  h1 .w { display: inline-block; }
+  .pill {
+    display: inline-block;
+    vertical-align: -0.06em;
+    width: 1.31em; height: 0.84em;
+    margin-inline: 0.06em;
+    border-radius: 999px;
+    overflow: hidden;
+    background: #1a0f08;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+  }
+  .pill img { width: 100%; height: 100%; object-fit: cover; transform: scale(1.08); }
+  .lede {
+    margin: clamp(14px, 2.4svh, 24px) 0 0;
+    max-width: 37rem;
+    font-size: clamp(0.9375rem, 0.88rem + 0.25vw, 1.0625rem);
+    line-height: 1.35;
+    letter-spacing: 0.01em;
+    color: var(--ink-soft);
+    text-wrap: pretty;
+  }
+
+  .chip {
+    position: relative;
+    margin-top: clamp(14px, 2svh, 20px);
+    display: inline-flex; align-items: center; gap: 12px;
+    height: 42px;
+    padding: 0 18px 0 14px;
+    border: 0.8px solid rgba(0, 0, 0, 0.8);
+    background: var(--paper);
+    color: var(--ink);
+    font: 400 13px/1.3 var(--font);
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: background-color .2s ease, color .2s ease;
+  }
+  .chip:hover { background: var(--ink); color: var(--paper); }
+  .chip:hover .handles i { background: var(--paper); border-color: var(--ink); }
+  .chip svg { width: 18px; height: 18px; flex: none; }
+  .chip .i-check { display: none; }
+  .chip.copied .i-copy { display: none; }
+  .chip.copied .i-check { display: block; }
+  .chip-text { min-width: 15ch; text-align: left; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  .anim [data-in] { opacity: 0; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .drift-r, .drift-l { animation: none; }
+    .nav a.link::after, .chip { transition: none; }
+  }
+
+  /* ---------- Tablet ---------- */
+  @media (max-width: 1023px) {
+    .hand-r { width: min(44vw, 34svh); }
+    .hand-l { width: min(54vw, 40svh); }
+    h1 { font-size: clamp(2.25rem, min(6.4vw, 6.2svh), 3.5rem); }
+  }
+
+  /* ---------- Phone ---------- */
+  @media (max-width: 639px) {
+    :root { --rule-y: clamp(84px, 13svh, 120px); }
+    .nav { height: 52px; padding-inline: 2px; }
+    .nav a.link { font-size: 14px; letter-spacing: 0.01em; }
+    .logo { width: 24px; height: 30px; }
+    .shape { width: clamp(52px, 15vw, 72px); }
+    .shape-tl { top: calc(var(--rule-y) + 14px); left: var(--gutter); }
+    .shape-br { right: var(--gutter); bottom: 16px; }
+    .marker { display: none; }
+    .hand-r { width: min(64vw, 36svh); right: -10vw; }
+    .hand-l { width: min(82vw, 46svh); left: -6vw; }
+    h1 { font-size: clamp(1.9rem, min(9.4vw, 5.4svh), 2.6rem); letter-spacing: -0.03em; }
+    .lede { max-width: 22rem; }
+    .stage { padding-bottom: clamp(40px, 12svh, 120px); }
+  }
+</style>
+</head>
+<body>
+<section class="hero" aria-labelledby="hero-title">
+  <span class="guide guide-v l" data-in aria-hidden="true"></span>
+  <span class="guide guide-v r" data-in aria-hidden="true"></span>
+  <span class="guide guide-h" data-in aria-hidden="true"></span>
+  <span class="marker l" data-in aria-hidden="true"></span>
+  <span class="marker r" data-in aria-hidden="true"></span>
+
+  <svg class="shape shape-tl" viewBox="0 0 200 250" aria-hidden="true"><path pathLength="1" d="M0 24A24 24 0 0 1 24 0L76 0A24 24 0 0 1 100 24L100 26A24 24 0 0 0 124 50L126 50A24 24 0 0 1 150 74L150 76A24 24 0 0 0 174 100L176 100A24 24 0 0 1 200 124L200 176A24 24 0 0 1 176 200L174 200A24 24 0 0 0 150 224L150 226A24 24 0 0 1 126 250L74 250A24 24 0 0 1 50 226L50 124A24 24 0 0 0 26 100L24 100A24 24 0 0 1 0 76Z"/></svg>
+  <svg class="shape shape-br" viewBox="0 0 200 250" aria-hidden="true"><path pathLength="1" d="M0 24A24 24 0 0 1 24 0L76 0A24 24 0 0 1 100 24L100 26A24 24 0 0 0 124 50L126 50A24 24 0 0 1 150 74L150 76A24 24 0 0 0 174 100L176 100A24 24 0 0 1 200 124L200 176A24 24 0 0 1 176 200L174 200A24 24 0 0 0 150 224L150 226A24 24 0 0 1 126 250L74 250A24 24 0 0 1 50 226L50 124A24 24 0 0 0 26 100L24 100A24 24 0 0 1 0 76Z"/></svg>
+
+  <div class="hand-wrap" aria-hidden="true">
+    <div class="drift-r"><img class="hand hand-r" data-in src="assets/hand-right.webp" width="1800" height="1907" alt="" fetchpriority="high"></div>
+    <div class="drift-l"><img class="hand hand-l" data-in src="assets/hand-left.webp" width="2200" height="1367" alt="" fetchpriority="high"></div>
+  </div>
+
+  <div class="nav-wrap" data-in>
+    <nav class="nav" aria-label="Primary">
+      <ul>
+        <li><a class="link" href="#">Work</a></li>
+        <li><a class="link" href="#">About</a></li>
+      </ul>
+      <a class="logo" href="#" aria-label="Home">
+        <svg viewBox="0 0 200 250" aria-hidden="true"><path d="M0 24A24 24 0 0 1 24 0L76 0A24 24 0 0 1 100 24L100 26A24 24 0 0 0 124 50L126 50A24 24 0 0 1 150 74L150 76A24 24 0 0 0 174 100L176 100A24 24 0 0 1 200 124L200 176A24 24 0 0 1 176 200L174 200A24 24 0 0 0 150 224L150 226A24 24 0 0 1 126 250L74 250A24 24 0 0 1 50 226L50 124A24 24 0 0 0 26 100L24 100A24 24 0 0 1 0 76Z"/></svg>
+      </a>
+      <ul>
+        <li><a class="link" href="#">Services</a></li>
+        <li><a class="link" href="#">Contact</a></li>
+      </ul>
+    </nav>
+    <span class="handles" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+  </div>
+
+  <div class="stage">
+    <div class="copy">
+      <h1 id="hero-title" aria-label="Digital designer from India. Think. Build. Learn.">
+        <span class="line" aria-hidden="true"><span class="w">Digital</span> <span class="pill" data-pill><img src="assets/pill.webp" width="464" height="308" alt=""></span> <span class="w">designer</span></span>
+        <span class="line" aria-hidden="true"><span class="w">from</span> <span class="w">INDIA</span></span>
+        <span class="line" aria-hidden="true"><span class="w">think.</span> <span class="w">build.</span> <span class="w">learn.</span></span>
+      </h1>
+      <p class="lede" data-in>Design what early-stage startups need to exist. brand, product, and system. from first brief to live product.</p>
+      <button class="chip" id="copy-email" type="button" data-in data-email="xyz2000@gmail.com">
+        <svg class="i-copy" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2.5" width="10.5" height="10.5" rx="3"/><path d="M13 13v1.5a3 3 0 0 1-3 3H5.5a3 3 0 0 1-3-3V10a3 3 0 0 1 3-3H7"/></svg>
+        <svg class="i-check" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg>
+        <span class="chip-text">xyz2000@gmail.com</span>
+        <span class="handles" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+      </button>
+      <span class="sr" id="copy-status" aria-live="polite"></span>
+    </div>
+  </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/motion@14.0.0/dist/motion.js"></script>
+<script>
+  /* Copy email */
+  (function () {
+    var chip = document.getElementById("copy-email");
+    var text = chip.querySelector(".chip-text");
+    var status = document.getElementById("copy-status");
+    var email = chip.dataset.email;
+    var timer;
+    function done(msg) {
+      chip.classList.add("copied");
+      text.textContent = msg;
+      status.textContent = msg === "copied!" ? "Email copied to clipboard" : "";
+      if (window.Motion) Motion.animate(chip, { scale: [0.96, 1] }, { type: "spring", stiffness: 400, damping: 15 });
+      clearTimeout(timer);
+      timer = setTimeout(function () { chip.classList.remove("copied"); text.textContent = email; status.textContent = ""; }, 1800);
+    }
+    chip.addEventListener("click", function () {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(email).then(function () { done("copied!"); }, function () { selectFallback(); });
+      } else { selectFallback(); }
+    });
+    function selectFallback() {
+      text.textContent = email;
+      var r = document.createRange(); r.selectNodeContents(text);
+      var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+    }
+  })();
+
+  /* Load-in sequence (motion.dev) */
+  (function () {
+    var root = document.documentElement;
+    var words = document.querySelectorAll("h1 .w");
+    var pill = document.querySelector("[data-pill]");
+    var shapes = document.querySelectorAll(".shape path");
+    function reveal() { root.classList.remove("anim"); }
+    var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!window.Motion || reduce) { reveal(); return; }
+
+    document.querySelectorAll("[data-in]").forEach(function (el) { el.style.opacity = "0"; });
+    words.forEach(function (el) { el.style.opacity = "0"; });
+    var pillW = pill.getBoundingClientRect().width;
+    pill.style.width = "0px";
+    document.querySelectorAll(".handles i").forEach(function (el) { el.style.transform = "scale(0)"; });
+    shapes.forEach(function (p) { p.style.strokeDasharray = "1"; p.style.strokeDashoffset = "1"; });
+    reveal();
+
+    var animate = Motion.animate, stagger = Motion.stagger;
+    var ease = [0.22, 1, 0.36, 1];
+    var $ = function (s) { return document.querySelector(s); };
+    var $$ = function (s) { return document.querySelectorAll(s); };
+
+    // Artboard: guides draw, markers pop, outline shapes trace themselves.
+    animate($$(".guide-v"), { opacity: [0, 1], scaleY: [0, 1] }, { duration: 1.2, ease: ease });
+    animate($(".guide-h"), { opacity: [0, 1], scaleX: [0, 1] }, { duration: 1.2, ease: ease, delay: 0.1 });
+    animate($$(".marker"), { opacity: [0, 1], scale: [0, 1] }, { type: "spring", stiffness: 300, damping: 16, delay: stagger(0.08, { startDelay: 0.7 }) });
+    animate(shapes, { strokeDashoffset: [1, 0] }, { duration: 1.6, ease: [0.65, 0, 0.35, 1], delay: stagger(0.2, { startDelay: 0.3 }) });
+
+    // Nav drops in; its handles snap on like a selection.
+    animate($(".nav-wrap"), { opacity: [0, 1], y: [-24, 0] }, { duration: 0.8, ease: ease, delay: 0.15 });
+    animate($$(".nav-wrap .handles i"), { scale: [0, 1] }, { type: "spring", stiffness: 420, damping: 18, delay: stagger(0.05, { startDelay: 0.75 }) });
+    animate($(".logo"), { rotate: [-90, 0], scale: [0.6, 1] }, { type: "spring", stiffness: 160, damping: 12, delay: 0.45 });
+
+    // Statement: words rise out of a blur, then the image pill opens between them.
+    animate(words, { opacity: [0, 1], y: [36, 0], filter: ["blur(10px)", "blur(0px)"] }, { duration: 0.8, ease: ease, delay: stagger(0.06, { startDelay: 0.35 }) });
+    animate(pill, { width: [0, pillW] }, { duration: 0.9, ease: ease, delay: 0.95 }).then(function () { pill.style.width = ""; });
+    animate($(".lede"), { opacity: [0, 1], y: [16, 0] }, { duration: 0.7, ease: ease, delay: 0.95 });
+    animate($(".chip"), { opacity: [0, 1], y: [16, 0] }, { duration: 0.7, ease: ease, delay: 1.1 });
+    animate($$(".chip .handles i"), { scale: [0, 1] }, { type: "spring", stiffness: 420, damping: 18, delay: stagger(0.05, { startDelay: 1.35 }) });
+
+    // The hands reach in from their corners toward each other.
+    animate($(".hand-r"), { opacity: [0, 1], x: [160, 0], y: [-140, 0], rotate: [6, 0] }, { duration: 1.6, ease: ease, delay: 0.5 });
+    animate($(".hand-l"), { opacity: [0, 1], x: [-180, 0], y: [140, 0], rotate: [-6, 0] }, { duration: 1.6, ease: ease, delay: 0.62 });
+  })();
+</script>
+</body>
+</html>
