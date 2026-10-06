@@ -4,11 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Quantro Hero</title>
+<script>document.documentElement.classList.add("anim");</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..700&family=Inter:wght@400;500;600&family=Urbanist:wght@500&display=swap">
 <style>
-  /* Layout: blue sky band (nav + copy) sitting on a photographic hill scene; KPI cards float over the scene. */
+  /* Layout: one-screen hero. Sky band (nav + copy) on top, photographic hill scene fills the rest; KPI cards float over the scene. */
   :root {
     --sky-0: #0760b4;
     --sky-1: #0c7abd;
@@ -22,6 +23,7 @@
     --ink-60: rgba(0, 0, 0, 0.6);
     --paper: #ffffff;
     --nav-bg: #fdfdfe;
+    --headline: #f1f9f3;
     --up-green: #06a95a;
     --up-green-bg: rgba(127, 217, 154, 0.3);
     --up-yellow: #d99a06;
@@ -32,13 +34,14 @@
     --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
     --font-label: "Urbanist", "Inter", system-ui, sans-serif;
     --gutter: clamp(16px, 4vw, 32px);
+    --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
     color-scheme: light;
   }
 
   *, *::before, *::after { box-sizing: border-box; }
   html, body { margin: 0; }
   body {
-    background: var(--paper);
+    background: var(--sky-4);
     color: var(--ink);
     font-family: var(--font-body);
     -webkit-font-smoothing: antialiased;
@@ -48,13 +51,23 @@
   a { color: inherit; text-decoration: none; }
   :focus-visible { outline: 2px solid var(--lime); outline-offset: 3px; border-radius: 40px; }
 
-  /* ---------- Hero shell ---------- */
-  .hero { position: relative; isolation: isolate; overflow: hidden; }
+  /* ---------- Hero shell: exactly one screen ---------- */
+  .hero {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: calc(100svh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    min-height: 520px;
+    overflow: hidden;
+    background: var(--sky-4);
+  }
 
   .hero-top {
     position: relative;
+    flex: none;
     padding-inline: var(--gutter);
-    padding-block: clamp(16px, 2.3vw, 33px) clamp(20px, 2vw, 32px);
+    padding-block: clamp(12px, 3.2svh, 33px) clamp(14px, 2.6svh, 28px);
     background: linear-gradient(180deg,
       var(--sky-0) 0%,
       var(--sky-1) 46%,
@@ -103,7 +116,7 @@
     align-items: center;
     justify-content: center;
     gap: 8px;
-    height: 56px;
+    height: clamp(46px, 6.2svh, 56px);
     padding-inline: 32px;
     border-radius: 40px;
     font-family: var(--font-body);
@@ -111,20 +124,20 @@
     font-size: 18px;
     letter-spacing: -0.02em;
     white-space: nowrap;
-    transition: background-color .2s ease, transform .2s ease, box-shadow .2s ease;
+    transition: background-color .2s ease, transform .2s var(--ease-out), box-shadow .2s ease;
   }
   .btn-lime {
     background: var(--lime);
     color: var(--ink);
     box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.06), 0 6px 18px -8px rgba(120, 150, 0, 0.6);
   }
-  .btn-lime:hover { background: var(--lime-hover); transform: translateY(-1px); }
+  .btn-lime:hover { background: var(--lime-hover); transform: translateY(-2px); }
   .btn-ghost {
     color: var(--paper);
     border: 2px solid rgba(255, 255, 255, 0.95);
     padding-inline: 28px;
   }
-  .btn-ghost:hover { background: rgba(255, 255, 255, 0.12); }
+  .btn-ghost:hover { background: rgba(255, 255, 255, 0.14); transform: translateY(-2px); }
   .btn-sm { height: 44px; padding-inline: 20px; font-size: 17px; }
 
   .menu-btn {
@@ -144,7 +157,6 @@
   .mobile-menu {
     position: absolute;
     left: 0; right: 0; top: calc(100% + 8px);
-    z-index: 10;
     padding: 8px;
     background: var(--nav-bg);
     border-radius: 20px;
@@ -166,7 +178,7 @@
   .copy {
     max-width: 1000px;
     margin-inline: auto;
-    padding-block: clamp(48px, 5.3vw, 76px) 0;
+    padding-top: clamp(18px, 6svh, 72px);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -183,7 +195,7 @@
     font-family: var(--font-label);
     font-weight: 500;
     font-size: 14px;
-    line-height: 30px;
+    line-height: 28px;
     letter-spacing: 0.02em;
     color: var(--paper);
     backdrop-filter: blur(6px);
@@ -194,63 +206,63 @@
     box-shadow: 0 0 0 3px rgba(46, 226, 122, 0.22);
   }
   h1 {
-    margin: 24px 0 0;
+    margin: clamp(12px, 2.4svh, 24px) 0 0;
     max-width: 992px;
     font-family: var(--font-display);
     font-variation-settings: "opsz" 14;
     font-weight: 600;
-    font-size: clamp(2.25rem, 0.9rem + 3.9vw, 4rem);
+    font-size: clamp(2rem, min(0.9rem + 3.9vw, 7.4svh), 4rem);
     line-height: 1.08;
     letter-spacing: -0.05em;
     text-wrap: balance;
-    color: #f2faf4;
-    background: linear-gradient(90deg, #eaf6ed 0%, #ffffff 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: var(--headline);
   }
+  h1 .w { display: inline-block; will-change: transform; }
   .lede {
-    margin: 18px 0 0;
+    margin: clamp(10px, 1.8svh, 18px) 0 0;
     max-width: 44rem;
     font-weight: 500;
-    font-size: clamp(1rem, 0.92rem + 0.35vw, 1.125rem);
+    font-size: clamp(0.9375rem, 0.92rem + 0.35vw, 1.125rem);
     line-height: 1.45;
     color: rgba(255, 255, 255, 0.88);
     text-wrap: pretty;
   }
-  .ctas { margin-top: 28px; display: flex; flex-wrap: wrap; justify-content: center; gap: 16px 24px; }
+  .ctas { margin-top: clamp(16px, 3svh, 28px); display: flex; flex-wrap: wrap; justify-content: center; gap: 12px 24px; }
 
-  /* ---------- Scene (hills + phone) ---------- */
+  /* ---------- Scene (hills + phone) ----------
+     The scene takes whatever height is left. The photo keeps its ratio, covers the width,
+     is sized so roughly the top 78% shows, and stays centred on the phone. */
   .scene {
     position: relative;
-    container-type: inline-size;
+    flex: 1 1 0;
+    min-height: 0;
+    container-type: size;
     background: var(--sky-4);
-    aspect-ratio: 2000 / 722;
+    --sw: max(100cqw, 100cqh * 3.55);
+    --sl: clamp(calc(100cqw - var(--sw)), calc(50cqw - var(--sw) * 0.5125), 0px);
   }
   .scene-img {
     position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+    top: 0;
+    left: var(--sl);
+    width: var(--sw);
+    max-width: none;
+    height: auto;
+    aspect-ratio: 2000 / 722;
     -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 9%);
     mask-image: linear-gradient(180deg, transparent 0, #000 9%);
+    transform-origin: 50% 0;
     pointer-events: none;
     user-select: none;
-  }
-  .scene::after {
-    content: "";
-    position: absolute;
-    inset: auto 0 0;
-    height: 16%;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0), var(--paper));
-    pointer-events: none;
   }
 
   /* ---------- KPI cards ---------- */
   .kpi {
     position: absolute;
     z-index: 2;
+    font-size: clamp(11px, min(var(--sw) * 0.0111, 3.1cqh), 16px);
+  }
+  .kpi-in {
     width: 11.25em;
     min-height: 10em;
     padding: 1.15em 1.1em 1.05em;
@@ -260,11 +272,10 @@
     background: var(--paper);
     border-radius: 12px;
     box-shadow: 0 4px 24px -4px rgba(4, 30, 20, 0.38);
-    font-size: clamp(12px, 1.111cqw, 18px);
     animation: float 7s ease-in-out infinite;
   }
-  .kpi:nth-of-type(2) { animation-delay: -2.3s; }
-  .kpi:nth-of-type(3) { animation-delay: -4.6s; }
+  .kpi-expense .kpi-in { animation-delay: -2.3s; }
+  .kpi-upcoming .kpi-in { animation-delay: -4.6s; }
   .kpi-label { font-weight: 500; font-size: 1em; letter-spacing: -0.02em; color: var(--ink-80); }
   .kpi-value {
     margin-top: 0.5em;
@@ -292,38 +303,30 @@
   .delta-yellow { color: var(--up-yellow); background: var(--up-yellow-bg); }
   .delta-blue { color: var(--up-blue); background: var(--up-blue-bg); }
 
-  /* Desktop: cards sit exactly where the Figma frame puts them (positions are % of the 2000x722 scene). */
-  .kpi-income   { left: 11.1%;  top: -2.35%; }
-  .kpi-upcoming { left: 17.65%; top: 49.9%; }
-  .kpi-expense  { left: 76.4%;  top: 20.8%; }
+  /* Desktop: same columns as the Figma frame, tracked to the photo. */
+  .kpi-income   { left: calc(var(--sl) + var(--sw) * 0.111);  top: 7%; }
+  .kpi-upcoming { left: calc(var(--sl) + var(--sw) * 0.1765); top: 50%; }
+  .kpi-expense  { left: calc(var(--sl) + var(--sw) * 0.764);  top: 24%; }
 
   @keyframes float {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-6px); }
   }
+
+  /* Before Motion runs, entrance elements wait hidden (only when JS is on). */
+  .anim [data-in] { opacity: 0; }
+
   @media (prefers-reduced-motion: reduce) {
-    .kpi { animation: none; }
+    .kpi-in { animation: none; }
     .btn, .nav-links a { transition: none; }
   }
 
   /* ---------- Tablet ---------- */
   @media (max-width: 1099px) {
-    .scene {
-      aspect-ratio: auto;
-      height: clamp(400px, 64vw, 560px);
-    }
-    /* Keep the phone centred and large; crop the hills at the sides. */
-    .scene-img {
-      left: 50%;
-      width: auto;
-      max-width: none;
-      aspect-ratio: 2000 / 722;
-      transform: translateX(-51.25%);
-    }
-    .kpi { font-size: 14px; }
-    .kpi-income   { left: max(var(--gutter), 5%); top: 6%; }
-    .kpi-upcoming { left: max(var(--gutter), 9%); top: 50%; }
-    .kpi-expense  { left: auto; right: max(var(--gutter), 5%); top: 26%; }
+    .kpi { font-size: clamp(10px, 3cqh, 14px); }
+    .kpi-income   { left: max(var(--gutter), 5%); top: 8%; }
+    .kpi-upcoming { left: max(var(--gutter), 9%); top: 52%; }
+    .kpi-expense  { left: auto; right: max(var(--gutter), 5%); top: 28%; }
   }
 
   @media (max-width: 1023px) {
@@ -338,25 +341,25 @@
     .brand span { font-size: 21px; }
     .brand svg { width: 28px; height: 28px; }
     .nav-actions .btn { display: none; }
-    .copy { padding-top: 40px; }
-    .eyebrow { font-size: 13px; padding-inline: 16px; }
-    h1 { margin-top: 18px; letter-spacing: -0.045em; line-height: 1.1; }
-    .lede { margin-top: 14px; }
-    .ctas { margin-top: 24px; gap: 12px; width: 100%; }
-    .ctas .btn { flex: 1 1 150px; height: 52px; padding-inline: 20px; font-size: 17px; }
-    .scene { height: clamp(380px, 112vw, 480px); }
-    .hero-top { padding-bottom: 16px; }
-    .kpi { font-size: 11px; width: 10.6em; min-height: 9.2em; padding: 1em; }
-    .kpi-income   { left: var(--gutter); top: 12%; }
+    .eyebrow { font-size: 13px; padding-inline: 16px; line-height: 26px; }
+    h1 { font-size: clamp(1.75rem, min(8.6vw, 5.2svh), 2.4rem); letter-spacing: -0.045em; line-height: 1.1; }
+    .ctas { gap: 12px; width: 100%; }
+    .ctas .btn { flex: 1 1 140px; padding-inline: 16px; font-size: 16px; }
+    .kpi { font-size: clamp(9px, 3.4cqh, 11.5px); }
+    .kpi-income   { left: var(--gutter); top: 10%; }
     .kpi-expense  { right: var(--gutter); top: 44%; }
     .kpi-upcoming { display: none; }
+  }
+  @media (max-width: 639px) and (max-height: 700px) {
+    .eyebrow { display: none; }
+    .copy { padding-top: 14px; }
   }
 </style>
 </head>
 <body>
 <section class="hero" aria-labelledby="hero-title">
   <div class="hero-top">
-    <header class="nav">
+    <header class="nav" data-in>
       <a class="brand" href="#" aria-label="Quantro home">
         <svg viewBox="0 0 32 32" aria-hidden="true">
           <g stroke="#14883b" stroke-width="1.7" stroke-linecap="round">
@@ -406,40 +409,53 @@
     </header>
 
     <div class="copy">
-      <span class="eyebrow"><i aria-hidden="true"></i>AI-Powered Financial</span>
-      <h1 id="hero-title">Financial Intelligence for Companies That Are Scaling&nbsp;Fast</h1>
-      <p class="lede">Quantro centralizes cash flow forecasting, revenue analytics, burn rate tracking, and predictive financial modeling into one real-time CFO dashboard.</p>
+      <span class="eyebrow" data-in><i aria-hidden="true"></i>AI-Powered Financial</span>
+      <h1 id="hero-title" data-split>Financial Intelligence for Companies That Are Scaling Fast</h1>
+      <p class="lede" data-in>Quantro centralizes cash flow forecasting, revenue analytics, burn rate tracking, and predictive financial modeling into one real-time CFO dashboard.</p>
       <div class="ctas">
-        <a class="btn btn-lime" href="#">Book Demo</a>
-        <a class="btn btn-ghost" href="#">See Projection</a>
+        <a class="btn btn-lime" href="#" data-in>Book Demo</a>
+        <a class="btn btn-ghost" href="#" data-in>See Projection</a>
       </div>
     </div>
   </div>
 
   <div class="scene">
-    <img class="scene-img" src="assets/scene.webp" width="2000" height="722" alt="A hand holding a phone showing the Quantro cards screen and a credit score of 690, over green hills.">
+    <img class="scene-img" data-in
+         src="assets/scene-2000.webp"
+         srcset="assets/scene-2000.webp 2000w, assets/scene-4000.webp 4000w"
+         sizes="(max-width: 1099px) 1100px, 100vw"
+         width="2000" height="722" fetchpriority="high" decoding="async"
+         alt="A hand holding a phone showing the Quantro cards screen and a credit score of 690, over green hills.">
 
-    <article class="kpi kpi-income" aria-label="Total income $20,676, up 0.7%">
-      <span class="kpi-label">Total Income</span>
-      <span class="kpi-value">$20,676</span>
-      <span class="kpi-delta delta-green"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 10.5l4-4 2.5 2.5L13 3.5M9 3.5h4v4"/></svg>0.7%</span>
+    <article class="kpi kpi-income" data-in aria-label="Total income $20,676, up 0.7%">
+      <div class="kpi-in">
+        <span class="kpi-label">Total Income</span>
+        <span class="kpi-value" data-count="20676" data-decimals="0">$20,676</span>
+        <span class="kpi-delta delta-green"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 10.5l4-4 2.5 2.5L13 3.5M9 3.5h4v4"/></svg>0.7%</span>
+      </div>
     </article>
 
-    <article class="kpi kpi-expense" aria-label="Total expense $2,567, up 12%">
-      <span class="kpi-label">Total Expense</span>
-      <span class="kpi-value">$2,567</span>
-      <span class="kpi-delta delta-yellow"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 10.5l4-4 2.5 2.5L13 3.5M9 3.5h4v4"/></svg>12%</span>
+    <article class="kpi kpi-expense" data-in aria-label="Total expense $2,567, up 12%">
+      <div class="kpi-in">
+        <span class="kpi-label">Total Expense</span>
+        <span class="kpi-value" data-count="2567" data-decimals="0">$2,567</span>
+        <span class="kpi-delta delta-yellow"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 10.5l4-4 2.5 2.5L13 3.5M9 3.5h4v4"/></svg>12%</span>
+      </div>
     </article>
 
-    <article class="kpi kpi-upcoming" aria-label="Upcoming $530.00, up 20%">
-      <span class="kpi-label">Upcoming</span>
-      <span class="kpi-value">$530.00</span>
-      <span class="kpi-delta delta-blue"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 10.5l4-4 2.5 2.5L13 3.5M9 3.5h4v4"/></svg>20%</span>
+    <article class="kpi kpi-upcoming" data-in aria-label="Upcoming $530.00, up 20%">
+      <div class="kpi-in">
+        <span class="kpi-label">Upcoming</span>
+        <span class="kpi-value" data-count="530" data-decimals="2">$530.00</span>
+        <span class="kpi-delta delta-blue"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 10.5l4-4 2.5 2.5L13 3.5M9 3.5h4v4"/></svg>20%</span>
+      </div>
     </article>
   </div>
 </section>
 
+<script src="https://cdn.jsdelivr.net/npm/motion@14.0.0/dist/motion.js"></script>
 <script>
+  /* Mobile menu */
   (function () {
     var btn = document.getElementById("menu-btn");
     var menu = document.getElementById("mobile-menu");
@@ -447,11 +463,60 @@
       btn.setAttribute("aria-expanded", String(open));
       btn.setAttribute("aria-label", open ? "Close menu" : "Open menu");
       menu.hidden = !open;
+      if (open && window.Motion) {
+        Motion.animate(menu, { opacity: [0, 1], y: [-8, 0], scale: [0.98, 1] }, { duration: 0.25, ease: [0.22, 1, 0.36, 1] });
+      }
     }
     btn.addEventListener("click", function () { setOpen(menu.hidden); });
     document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !menu.hidden) { setOpen(false); btn.focus(); } });
     document.addEventListener("click", function (e) { if (!menu.hidden && !menu.contains(e.target) && !btn.contains(e.target)) setOpen(false); });
     window.matchMedia("(min-width: 1024px)").addEventListener("change", function (e) { if (e.matches) setOpen(false); });
+  })();
+
+  /* Load-in sequence (motion.dev) */
+  (function () {
+    var root = document.documentElement;
+    var h1 = document.querySelector("[data-split]");
+
+    // Split the headline into words so they can rise in one by one.
+    var words = h1.textContent.trim().split(/\s+/);
+    h1.setAttribute("aria-label", words.join(" "));
+    h1.innerHTML = words.map(function (w) { return '<span class="w" aria-hidden="true">' + w + "</span>"; }).join(" ");
+    var wordEls = h1.querySelectorAll(".w");
+    wordEls.forEach(function (el) { el.setAttribute("data-in", ""); });
+
+    function reveal() { root.classList.remove("anim"); }
+    var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!window.Motion || reduce) { reveal(); return; }
+
+    // Hold every element at its first frame inline, so nothing flashes before its delay ends.
+    document.querySelectorAll("[data-in]").forEach(function (el) { el.style.opacity = "0"; });
+
+    var animate = Motion.animate, stagger = Motion.stagger;
+    var ease = [0.22, 1, 0.36, 1];
+    var $ = function (s) { return document.querySelector(s); };
+    var $$ = function (s) { return document.querySelectorAll(s); };
+
+    animate($(".nav"), { opacity: [0, 1], y: [-28, 0] }, { duration: 0.8, ease: ease, delay: 0.05 });
+    animate($(".scene-img"), { opacity: [0, 1], y: [90, 0], scale: [1.08, 1] }, { duration: 1.4, ease: ease, delay: 0.15 });
+    animate($(".eyebrow"), { opacity: [0, 1], y: [14, 0], scale: [0.94, 1] }, { duration: 0.6, ease: ease, delay: 0.3 });
+    animate(wordEls, { opacity: [0, 1], y: [32, 0], filter: ["blur(10px)", "blur(0px)"] }, { duration: 0.75, ease: ease, delay: stagger(0.05, { startDelay: 0.4 }) });
+    animate($(".lede"), { opacity: [0, 1], y: [16, 0] }, { duration: 0.7, ease: ease, delay: 0.85 });
+    animate($$(".ctas .btn"), { opacity: [0, 1], y: [18, 0], scale: [0.96, 1] }, { duration: 0.6, ease: ease, delay: stagger(0.08, { startDelay: 0.95 }) });
+
+    var cards = $$(".kpi");
+    animate(cards, { opacity: [0, 1], y: [48, 0], scale: [0.86, 1] }, { type: "spring", stiffness: 170, damping: 18, delay: stagger(0.12, { startDelay: 1.05 }) });
+
+    // Count each card's value up from zero as it lands.
+    $$(".kpi-value").forEach(function (el, i) {
+      var target = parseFloat(el.dataset.count);
+      var dec = parseInt(el.dataset.decimals, 10);
+      var fmt = new Intl.NumberFormat("en-US", { minimumFractionDigits: dec, maximumFractionDigits: dec });
+      el.textContent = "$" + fmt.format(0);
+      animate(0, target, { duration: 1.3, ease: [0.16, 1, 0.3, 1], delay: 1.15 + i * 0.12, onUpdate: function (v) { el.textContent = "$" + fmt.format(v); } });
+    });
+
+    reveal();
   })();
 </script>
 </body>
