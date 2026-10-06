@@ -87,7 +87,7 @@
   .shape-br { bottom: clamp(12px, 2.3svh, 24px); right: clamp(12px, 1.7vw, 24px); }
 
   /* Hands */
-  .hand { position: absolute; z-index: 2; pointer-events: none; user-select: none; height: auto; }
+  .hand { position: absolute; z-index: 2; max-width: none; pointer-events: none; user-select: none; height: auto; }
   .hand-r { top: -14px; right: -14px; width: min(31.5vw, 44.3svh); transform-origin: 100% 0; }
   .hand-l { bottom: -14px; left: -14px; width: min(38.5vw, 54svh); transform-origin: 0 100%; }
   .hand-wrap { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
@@ -157,9 +157,9 @@
   h1 {
     margin: 0;
     font-weight: 500;
-    font-size: clamp(2.25rem, min(4.45vw, 7svh), 4rem);
+    font-size: clamp(2.5rem, min(4.6vw, 7.4svh), 4.5rem);
     line-height: 1.02;
-    letter-spacing: -0.035em;
+    letter-spacing: -0.022em;
     color: var(--ink);
   }
   h1 .line { display: block; white-space: nowrap; }
@@ -168,7 +168,7 @@
     display: inline-block;
     vertical-align: -0.06em;
     width: 1.31em; height: 0.84em;
-    margin-inline: 0.06em;
+    margin-inline: 0.18em;
     border-radius: 999px;
     overflow: hidden;
     background: #1a0f08;
@@ -189,12 +189,12 @@
     position: relative;
     margin-top: clamp(14px, 2svh, 20px);
     display: inline-flex; align-items: center; gap: 12px;
-    height: 42px;
+    height: 40px;
     padding: 0 18px 0 14px;
     border: 0.8px solid rgba(0, 0, 0, 0.8);
     background: var(--paper);
     color: var(--ink);
-    font: 400 13px/1.3 var(--font);
+    font: 400 12.5px/1.3 var(--font);
     letter-spacing: 0.02em;
     cursor: pointer;
     transition: background-color .2s ease, color .2s ease;
@@ -219,7 +219,7 @@
   @media (max-width: 1023px) {
     .hand-r { width: min(44vw, 34svh); }
     .hand-l { width: min(54vw, 40svh); }
-    h1 { font-size: clamp(2.25rem, min(6.4vw, 6.2svh), 3.5rem); }
+    h1 { font-size: clamp(2.25rem, min(6.6vw, 6.2svh), 3.75rem); }
   }
 
   /* ---------- Phone ---------- */
@@ -234,7 +234,8 @@
     .marker { display: none; }
     .hand-r { width: min(64vw, 36svh); right: -10vw; }
     .hand-l { width: min(82vw, 46svh); left: -6vw; }
-    h1 { font-size: clamp(1.9rem, min(9.4vw, 5.4svh), 2.6rem); letter-spacing: -0.03em; }
+    h1 { font-size: clamp(1.9rem, min(9vw, 5.4svh), 2.6rem); letter-spacing: -0.025em; }
+    .pill { margin-inline: 0.1em; }
     .lede { max-width: 22rem; }
     .stage { padding-bottom: clamp(40px, 12svh, 120px); }
   }
@@ -276,7 +277,7 @@
   <div class="stage">
     <div class="copy">
       <h1 id="hero-title" aria-label="Digital designer from India. Think. Build. Learn.">
-        <span class="line" aria-hidden="true"><span class="w">Digital</span> <span class="pill" data-pill><img src="assets/pill.webp" width="464" height="308" alt=""></span> <span class="w">designer</span></span>
+        <span class="line" aria-hidden="true"><span class="w">Digital</span> <span class="pill" data-pill><img src="assets/pill.webp" width="464" height="308" alt=""></span> <span class="w" id="w-designer">designer</span></span>
         <span class="line" aria-hidden="true"><span class="w">from</span> <span class="w">INDIA</span></span>
         <span class="line" aria-hidden="true"><span class="w">think.</span> <span class="w">build.</span> <span class="w">learn.</span></span>
       </h1>
@@ -321,6 +322,67 @@
     }
   })();
 
+  /* Hands: each fingertip is pinned to a point measured from the rendered text,
+     and each hand is scaled so its arm always runs off its corner of the screen. */
+  var layoutHands = (function () {
+    var hero = document.querySelector(".hero");
+    var word = document.getElementById("w-designer");
+    var h1 = document.querySelector("h1");
+    var chip = document.getElementById("copy-email");
+    var R = { el: document.querySelector(".hand-r"), w: 1800, h: 1907, tx: 2, ty: 1531 };
+    var L = { el: document.querySelector(".hand-l"), w: 2200, h: 1367, tx: 2197, ty: 189 };
+    var OVER = 18; // bleed past the edges so the idle drift never shows a cut edge
+
+    function rel(el) {
+      var a = el.getBoundingClientRect(), b = hero.getBoundingClientRect();
+      return { left: a.left - b.left, right: a.right - b.left, top: a.top - b.top, bottom: a.bottom - b.top };
+    }
+    function place(H, k, x, y) {
+      var s = H.el.style;
+      s.width = H.w * k + "px";
+      s.left = x - H.tx * k + "px";
+      s.top = y - H.ty * k + "px";
+      s.right = "auto"; s.bottom = "auto";
+    }
+    return function () {
+      var vw = hero.clientWidth, vh = hero.clientHeight;
+      var fs = parseFloat(getComputedStyle(h1).fontSize);
+      var d = rel(word), c = rel(chip);
+      // Portrait screens: hands fill the space above the headline and below the email button.
+      if (vw < 900 && vh > vw * 1.1) {
+        // Size each hand so the whole hand (not just the fingertip) clears the text.
+        var gap = 0.3 * fs;
+        var pk = (d.top - gap + OVER) / R.h;
+        var px = Math.max(vw * 0.42, vw + OVER - (R.w - R.tx) * pk);
+        place(R, pk, px, d.top - gap - (R.h - R.ty) * pk);
+        var top = c.bottom + gap;
+        var qk = (vh + OVER - top) / L.h;
+        var qx = Math.min(vw * 0.55, L.tx * qk - OVER);
+        place(L, qk, qx, top + L.ty * qk);
+        return;
+      }
+
+      // Landscape: right index finger touches the end of "designer", as in the Figma frame.
+      var rx = d.right + 0.2 * fs, ry = d.top + 0.32 * fs;
+      var rBase = 7.1 * fs / R.w;
+      var rk = Math.min(Math.max(rBase, (vw + OVER - rx) / (R.w - R.tx), (ry + OVER) / R.ty), rBase * 1.35);
+      rx = Math.max(rx, vw + OVER - (R.w - R.tx) * rk);   // if capped, slide the tip so the arm still reaches
+      ry = Math.min(ry, R.ty * rk - OVER);
+      place(R, rk, rx, ry);
+
+      // Left hand reaches up toward the email button.
+      var lx = c.left - 1.85 * fs, ly = c.bottom + 0.75 * fs;
+      var lBase = 8.66 * fs / L.w;
+      var lk = Math.min(Math.max(lBase, (lx + OVER) / L.tx, (vh + OVER - ly) / (L.h - L.ty)), lBase * 1.35);
+      lx = Math.min(lx, L.tx * lk - OVER);
+      ly = Math.max(ly, vh + OVER - (L.h - L.ty) * lk);
+      place(L, lk, lx, ly);
+    };
+  })();
+  layoutHands();
+  var raf;
+  window.addEventListener("resize", function () { cancelAnimationFrame(raf); raf = requestAnimationFrame(layoutHands); });
+
   /* Load-in sequence (motion.dev) */
   (function () {
     var root = document.documentElement;
@@ -329,7 +391,11 @@
     var shapes = document.querySelectorAll(".shape path");
     function reveal() { root.classList.remove("anim"); }
     var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (!window.Motion || reduce) { reveal(); return; }
+    var fontsReady = document.fonts ? Promise.race([document.fonts.ready, new Promise(function (res) { setTimeout(res, 1200); })]) : Promise.resolve();
+    if (!window.Motion || reduce) { fontsReady.then(function () { layoutHands(); reveal(); }); return; }
+    fontsReady.then(function () { layoutHands(); intro(); });
+
+    function intro() {
 
     document.querySelectorAll("[data-in]").forEach(function (el) { el.style.opacity = "0"; });
     words.forEach(function (el) { el.style.opacity = "0"; });
@@ -365,6 +431,7 @@
     // The hands reach in from their corners toward each other.
     animate($(".hand-r"), { opacity: [0, 1], x: [160, 0], y: [-140, 0], rotate: [6, 0] }, { duration: 1.6, ease: ease, delay: 0.5 });
     animate($(".hand-l"), { opacity: [0, 1], x: [-180, 0], y: [140, 0], rotate: [-6, 0] }, { duration: 1.6, ease: ease, delay: 0.62 });
+    }
   })();
 </script>
 </body>
